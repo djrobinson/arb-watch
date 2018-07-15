@@ -8,6 +8,7 @@
     "start": "PORT=3001 node bin/www"
   },
   "dependencies": {
+    "autobahn": "^18.3.2",
     "babel-plugin-syntax-async-functions": "^6.1.4",
     "babel-plugin-transform-regenerator": "^6.1.4",
     "babel-polyfill": "^6.1.4",

@@ -11,8 +11,6 @@ class App extends Component {
         console.log("howdy! ", data);
         this.setState({ markets: data.result })
       });
-
-    console.log("This data: ", this.state);
   }
 
   render() {
