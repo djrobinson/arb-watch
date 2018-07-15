@@ -18,7 +18,6 @@ class App extends Component {
 
     socket.onopen = (event) => {
       console.log("Socket has opened");
-      socket.send("Here's some text that the server is urgently awaiting!");
     };
 
     socket.onmessage = (message) => console.log("What is message: ", message);

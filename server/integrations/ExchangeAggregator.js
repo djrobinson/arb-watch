@@ -10,17 +10,13 @@ class ExchangeAggregator {
   constructor() {
     console.log("Exchange agg");
     Poloniex.connection.open();
-    // Poloniex.emitter.on("NEW_BID", data => {
-    //   console.log("Bid from Poloniex: ");
-    //   console.log(data);
-    // })
   }
 
   sendWebSocket(msg) {
       console.log("What is socket msg ", msg);
   }
 
-  subscribe(callback) {
+  subscribeToOrderBook(callback) {
     console.log("Subscribing callback");
     var subscription = Poloniex.emitter.on('NEW_BID', callback);
   }
@@ -29,8 +25,3 @@ class ExchangeAggregator {
 
 module.exports = ExchangeAggregator;
 
-// Poloniex.connection.open();
-// Poloniex.emitter.on("NEW_BID", data => {
-//   console.log("Bid from Poloniex: ");
-//   console.log(data);
-// })

@@ -19,7 +19,7 @@ router.ws('/echo', function(ws, req) {
     };
 
     const exchangeAggregator = new ExchangeAggregator();
-    exchangeAggregator.subscribe(aggregatorCallback);
+    exchangeAggregator.subscribeToOrderBook(aggregatorCallback);
 
     ws.on('message', msg => {
         ws.send(msg)

@@ -3,7 +3,7 @@ TODO: CREATE A CLASS THAT HAS THE REST/WS COMMON FUNCTIONS, COMMON
 PROPERTIES, AND OVERRIDABLE GETMETHODS FOR MARKETS & ORDERBOOK
 */
 
-require("babel-polyfill");
+require('babel-polyfill');
 require('es6-promise').polyfill();
 require('isomorphic-fetch');
 
@@ -24,7 +24,6 @@ class Exchange {
     try {
       var markets = await this.get('https://bittrex.com/api/v1.1/public/getmarkets');
       console.log("Markets came back: ");
-      // retruns like syncronous code!
       return Promise.resolve(markets);
 
 
@@ -32,7 +31,6 @@ class Exchange {
     } catch (e) {
       console.log("is error from markets", e);
       return Promise.reject(e);
-      // promise was rejected, handle errors with try/catch!
     }
   }
 

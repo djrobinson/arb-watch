@@ -3,24 +3,21 @@ INHERITS FROM EXCHANGE, IMPLEMENTS EXCHANGE SPECIFIC CALLBACKS. PULLS IN CREDS
 AND CONTIANS EXCHANGE SPECIFIC FORMATTERS
 */
 
-var events = require('events');
-var emitter = new events.EventEmitter;
-var autobahn = require('autobahn');
-var wsuri = "wss://api.poloniex.com";
-var connection = new autobahn.Connection({
-  url: wsuri,
-  realm: "realm1"
-});
-var Moment = require('moment');
+const events = require('events');
+const emitter = new events.EventEmitter;
+const Moment = require('moment');
+
+const WebSocket = require('ws');
+const wsuri = "wss://api2.poloniex.com:443";
+const socket = new WebSocket(wsuri);
 
 var openPairs = {};
-
-
 
 var saveRouter = function(event, pair, kwarg) {
 
 
   if (event.type === 'orderBookModify') {
+
     let orderData = {
       time: Moment().format('lll'),
       kwarg: kwarg.seq,
@@ -30,14 +27,16 @@ var saveRouter = function(event, pair, kwarg) {
       bidask: event.data.type,
       amount: event.data.amount
     }
-
+    // console.log("What is order data: ", orderData);
     if (event.data.type === 'bid') {
-      console.log("here's the first bid");
+      // Turn this into an exchange level method, don't have exchange specific emitters
       emitter.emit('NEW_BID', orderData);
+      //Instead of a emitter, send to a bid parser
     };
 
-    if (event.data.type === 'ask') {
-
+    if (parseFloat(event.data.rate) < 0.071) {
+      console.log(event.data);
+      // Send to ask parser
     };
   }
 
@@ -75,7 +74,7 @@ var saveRouter = function(event, pair, kwarg) {
   // }
 };
 
-var startMarket = function(pair, session) {
+var startMarket = (pair, session) => {
   function marketEvent (args,kwarg) {
     args.forEach(function(event) {
       saveRouter(event, pair, kwarg);
@@ -84,17 +83,21 @@ var startMarket = function(pair, session) {
   session.subscribe(pair, marketEvent);
 };
 
-connection.onopen = function (session) {
+socket.onopen = session => {
   console.log('Opening connection');
-
-  startMarket('BTC_ETH', session);
+  let params = {command: 'subscribe', channel: 'BTC_ETH'};
+  socket.send(JSON.stringify(params));
+  // startMarket('BTC_ETH', session);
 
 };
 
-connection.onclose = function () {
+socket.onmessage = msg => {
+
+  console.log("Message back from polo: ", msg.data);
+}
+
+socket.onclose = function () {
   console.log("Websocket connection closed");
 };
 
-
-
-module.exports = { connection, emitter };
+module.exports = { socket, emitter };
