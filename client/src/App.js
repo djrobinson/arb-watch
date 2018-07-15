@@ -2,19 +2,28 @@ import React, { Component } from 'react';
 import './App.css';
 
 class App extends Component {
-  state = {test: []}
+  state = {markets: []}
 
   componentDidMount() {
-    fetch('/api/home')
+    fetch('/api/getMarkets/bittrex')
       .then(res => res.json())
-      .then(data => this.setState({...data}));
+      .then(data => {
+        console.log("howdy! ", data);
+        this.setState({ markets: data.result })
+      });
+
+    console.log("This data: ", this.state);
   }
 
   render() {
     return (
       <div className="App">
-        <h1>Users</h1>
-        {this.state.test}
+        <h1>Markets</h1>
+        {
+          this.state.markets.map((market) => <ul><img src={market.LogoUrl} height="25px" width="25px" />{market.MarketCurrency}/{market.BaseCurrency}</ul>)
+        }
+
+
       </div>
     );
   }

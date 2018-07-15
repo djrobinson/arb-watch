@@ -3,14 +3,23 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "compile": "babel server/ -d server-build/ && cp -r server/views server-build/",
+    "clean": "rm -rf server-build && mkdir server-build",
+    "start": "PORT=3001 node bin/www"
   },
   "dependencies": {
+    "babel-plugin-syntax-async-functions": "^6.1.4",
+    "babel-plugin-transform-regenerator": "^6.1.4",
+    "babel-polyfill": "^6.1.4",
+    "babel-preset-es2015": "^6.1.4",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
+    "es6-promise": "^4.2.4",
     "express": "~4.16.0",
     "http-errors": "~1.6.2",
+    "isomorphic-fetch": "^2.2.1",
     "jade": "~1.11.0",
-    "morgan": "~1.9.0"
+    "morgan": "~1.9.0",
+    "request": "^2.65.0"
   }
 }
