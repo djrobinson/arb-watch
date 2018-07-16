@@ -10,9 +10,9 @@ const events = require('events');
 const emitter = new events.EventEmitter;
 
 class Exchange {
-  constructor(exchangeName) {
+  constructor() {
     console.log("Trying to start exchange");
-    this.exchangeName = exchangeName;
+    this.exchangeName = '';
     this.apiURlBase = '';
     this.restEndpoints = {
       getMarkets: ''
@@ -30,6 +30,7 @@ class Exchange {
 
   emitOrderBook(order) {
       console.log("We're emitting the order", order);
+      order['exchange'] = this.exchangeName;
       emitter.emit('ORDER_UPDATE', JSON.stringify(order));
   }
 

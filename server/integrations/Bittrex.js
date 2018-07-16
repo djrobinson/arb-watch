@@ -56,7 +56,7 @@ class Bittrex extends Exchange {
               zlib.inflateRaw (raw, function (err, inflated) {
                 if (! err) {
                   json = JSON.parse (inflated.toString ('utf8'));
-                  boundEmitter(json);
+                  // boundEmitter(json);
                 }
               });
             }

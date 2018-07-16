@@ -22,7 +22,7 @@ class App extends Component {
       console.log("Socket has opened");
     };
 
-    socket.onmessage = (message) => console.log("What is message: ", message);
+    socket.onmessage = (message) => console.log("What is message: ", JSON.parse(message.data));
 
   }
 
