@@ -20,7 +20,7 @@ router.get('/test', function(req, res, next) {
 });
 
 router.ws('/echo', function(ws, req) {
-    const requestedExchanges = ['poloniex', 'bittrex'];
+    const requestedExchanges = ['bittrex', 'poloniex'];
     const exchangeAggregator = new ExchangeAggregator(requestedExchanges);
     console.log("Inside of ECHO");
     const aggregatorCallback = function(msg) {

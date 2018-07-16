@@ -41,12 +41,11 @@ class Poloniex extends Exchange {
 
   parseOrderDelta(orderDelta) {
     const data = JSON.parse(orderDelta);
-    console.log("Order delta:", data);
 
     if (data && data[2] && data[2][0] && data[2][0][1] && data[2][0][1].hasOwnProperty('orderBook')) {
       // Initial Response:
       let initOrderBook = {
-        type: 'ORDERBOOK_INIT'
+        type: 'ORDER_BOOK_INIT'
       }
       initOrderBook.asks = data[2][0][1].orderBook[0];
       initOrderBook.bids = data[2][0][1].orderBook[1];
