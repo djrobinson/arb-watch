@@ -21,7 +21,9 @@
     "http-errors": "~1.6.2",
     "isomorphic-fetch": "^2.2.1",
     "jade": "~1.11.0",
+    "jsonic": "^0.3.0",
     "morgan": "~1.9.0",
-    "request": "^2.65.0"
+    "request": "^2.65.0",
+    "signalr-client": "0.0.17"
   }
 }

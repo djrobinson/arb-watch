@@ -100,4 +100,8 @@ socket.onclose = function () {
   console.log("Websocket connection closed");
 };
 
+/*
+[148,553136927,[["o",1,"0.07033231","0.00000000"],["o",1,"0.07032905","2.54758968"]]]
+*/
+
 module.exports = { socket, emitter };

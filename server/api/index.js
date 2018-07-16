@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const Exchange = require('../integrations/Exchange')
-const ExchangeAggregator = require('../integrations/ExchangeAggregator')
+const Exchange = require('../integrations/Exchange');
+const ExchangeAggregator = require('../integrations/ExchangeAggregator');
+const Poloniex = require('../integrations/Poloniex');
+const Bittrex = require('../integrations/Bittrex');
 const asyncMiddleware = require('../utils/asyncMiddleware');
 
 
@@ -11,6 +13,13 @@ router.get('/getMarkets/:exchange', asyncMiddleware(async function(req, res, nex
   res.json(await exchange.getMarkets());
 }));
 
+router.get('/test', function(req, res, next) {
+  console.log("Trying home");
+  const bittrex = new Bittrex();
+  bittrex.initOrderBook();
+  res.json({test: "test"});
+});
+
 router.ws('/echo', function(ws, req) {
     console.log("Inside of ECHO");
     const aggregatorCallback = function(msg) {
@@ -18,8 +27,7 @@ router.ws('/echo', function(ws, req) {
       ws.send(msg.pair);
     };
 
-    const exchangeAggregator = new ExchangeAggregator();
-    exchangeAggregator.subscribeToOrderBook(aggregatorCallback);
+    // exchangeAggregator.subscribeToOrderBook(aggregatorCallback);
 
     ws.on('message', msg => {
         ws.send(msg)

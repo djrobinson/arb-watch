@@ -8,24 +8,22 @@ class App extends Component {
     fetch('/api/getMarkets/bittrex')
       .then(res => res.json())
       .then(data => {
-        console.log("howdy! ", data);
         this.setState({ markets: data.result })
       });
 
-    const socket = new WebSocket('ws://localhost:3001/api/echo');
+    fetch('/api/test')
+      .then(res => console.log("What's from test: ", res));
 
-    console.log("What is socket: ", socket);
+    // const socket = new WebSocket('ws://localhost:3001/api/echo');
 
-    socket.onopen = (event) => {
-      console.log("Socket has opened");
-    };
+    // console.log("What is socket: ", socket);
 
-    socket.onmessage = (message) => console.log("What is message: ", message);
+    // socket.onopen = (event) => {
+    //   console.log("Socket has opened");
+    // };
 
-  }
+    // socket.onmessage = (message) => console.log("What is message: ", message);
 
-  handleData(data) {
-    console.log("What is data: ", data);
   }
 
   render() {

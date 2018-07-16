@@ -4,13 +4,10 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var app = express();
-var server = require('https').Server(app);
+var server = require('http').Server(app);
 var expressWs = require('express-ws')(app, server);
 
 var indexRouter = require('./api/index');
-
-
-
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
