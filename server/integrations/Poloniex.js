@@ -47,8 +47,22 @@ class Poloniex extends Exchange {
       let initOrderBook = {
         type: 'ORDER_BOOK_INIT'
       }
-      initOrderBook.asks = data[2][0][1].orderBook[0];
-      initOrderBook.bids = data[2][0][1].orderBook[1];
+      const stringBids = data[2][0][1].orderBook[1];
+      const bidRates = Object.keys(stringBids);
+      const bids = bidRates.reduce((aggregator, bid) => {
+        aggregator[bid] = parseFloat(stringBids[bid])
+        return aggregator;
+      }, {});
+
+      const stringAsks = data[2][0][1].orderBook[0];
+      const askRates = Object.keys(stringAsks);
+      const asks = askRates.reduce((aggregator, ask) => {
+        aggregator[ask] = parseFloat(stringAsks[ask])
+        return aggregator;
+      }, {});
+
+      initOrderBook.asks = asks;
+      initOrderBook.bids = bids;
       console.log("Orderbook asks: ", initOrderBook.asks);
       this.emitOrderBook(initOrderBook);
     }
@@ -59,16 +73,16 @@ class Poloniex extends Exchange {
             // 1 for Bid
             let bidChange = {
               type: 'BID_UPDATE',
-              rate: delta[2],
-              amount: delta[3]
+              rate: parseFloat(delta[2]),
+              amount: parseFloat(delta[3])
             }
             this.emitOrderBook(bidChange);
           } else {
             // 0 for ask
             let askChange = {
               type: 'ASK_UPDATE',
-              rate: delta[2],
-              amount: delta[3]
+              rate: parseFloat(delta[2]),
+              amount: parseFloat(delta[3])
             }
             this.emitOrderBook(askChange);
           }

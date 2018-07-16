@@ -111,10 +111,25 @@ class Bittrex extends Exchange {
 
   parseOrderDelta(type, orderDelta) {
     if (type === 'ORDER_BOOK_INIT' && orderDelta['Z'] && orderDelta['S']) {
+      const sortedBids = orderDelta['Z'].sort((a, b) => {
+        return b.R - a.R;
+      });
+      const sortedAsks = orderDelta['S'].sort((a, b) => {
+        return a.R - b.R;
+      });
+      const bids = sortedBids.reduce((accumulator, order) => {
+          accumulator[order.R.toString()] = parseFloat(order.Q);
+          return accumulator;
+      }, {})
+      const asks = sortedAsks.reduce((accumulator, order) => {
+          accumulator[order.R.toString()] = parseFloat(order.Q);
+          return accumulator;
+      }, {})
+      console.log("Bids?", bids);
       let initOrderBook = {
         type,
-        bids: orderDelta['Z'],
-        asks: orderDelta['S']
+        bids: bids,
+        asks: asks
       }
       this.emitOrderBook(initOrderBook);
     }

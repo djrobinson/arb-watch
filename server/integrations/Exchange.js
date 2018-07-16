@@ -29,8 +29,8 @@ class Exchange {
   }
 
   emitOrderBook(order) {
-      console.log("We're emitting the order", order);
       order['exchange'] = this.exchangeName;
+      console.log("We're emitting the order", order);
       emitter.emit('ORDER_UPDATE', JSON.stringify(order));
   }
 

@@ -13,6 +13,10 @@ class ExchangeAggregator {
     console.log("What are exchanges: ", exchanges);
     this.subscriptions = {};
     this.exchanges = [];
+    this.mergedOrderBook = {
+      asks: {},
+      bids: {}
+    };
     if (exchanges.length) {
       exchanges.forEach(exchangeName => {
         this.exchanges.push(exchangeName);
@@ -30,14 +34,16 @@ class ExchangeAggregator {
   subscribeToOrderBooks(callback) {
     console.log("Subscribing callback");
     this.exchanges.forEach(exchange => this.subscriptions[exchange].initOrderBook())
+    // emitter.on('ORDER_BOOK_INIT', this.mergeOrderBooks(event, callback))
     emitter.on('ORDER_UPDATE', callback)
   }
 
-  mergeOrderBooks(event) {
+  mergeOrderBooks(event, callback) {
+    console.log("Merging order books");
 
+    callback(this.mergedOrderBook)
   }
 
 }
 
 module.exports = ExchangeAggregator;
-
