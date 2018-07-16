@@ -7,19 +7,16 @@ require('babel-polyfill');
 require('es6-promise').polyfill();
 require('isomorphic-fetch');
 const events = require('events');
-const emitter = new events.EventEmitter;
-
-const availableExchanges = require('./availableExchanges.js');
 
 class Exchange {
   constructor(exchangeName) {
     console.log("Trying to start exchange");
     this.exchangeName = exchangeName;
     this.apiURlBase = '';
+    this.emitter = new events.EventEmitter;
     this.restEndpoints = {
       getMarkets: ''
     }
-    const exchange = new availableExchanges[exchangeName]();
   }
 
   async getMarkets() {
@@ -27,9 +24,6 @@ class Exchange {
       var markets = await this.get('https://bittrex.com/api/v1.1/public/getmarkets');
       console.log("Markets came back: ");
       return Promise.resolve(markets);
-
-
-
     } catch (e) {
       console.log("is error from markets", e);
       return Promise.reject(e);
@@ -37,7 +31,7 @@ class Exchange {
   }
 
   emitOrderBook(order) {
-
+      console.log("We're emitting the order", order);
   }
 
   get(url){
