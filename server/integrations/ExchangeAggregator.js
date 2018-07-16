@@ -18,10 +18,10 @@ class ExchangeAggregator {
       console.log("What is socket msg ", msg);
   }
 
-  // subscribeToOrderBook(callback) {
-  //   console.log("Subscribing callback");
-  //   var subscription = Poloniex.emitter.on('NEW_BID', callback);
-  // }
+  subscribeToOrderBook(callback) {
+    console.log("Subscribing callback");
+    var subscription = Poloniex.emitter.on('NEW_BID', callback);
+  }
 
   mergeOrderBooks(event) {
 

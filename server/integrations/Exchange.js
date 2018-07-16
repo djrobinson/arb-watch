@@ -6,6 +6,8 @@ PROPERTIES, AND OVERRIDABLE GETMETHODS FOR MARKETS & ORDERBOOK
 require('babel-polyfill');
 require('es6-promise').polyfill();
 require('isomorphic-fetch');
+const events = require('events');
+const emitter = new events.EventEmitter;
 
 const availableExchanges = require('./availableExchanges.js');
 
@@ -34,6 +36,9 @@ class Exchange {
     }
   }
 
+  emitOrderBook(order) {
+
+  }
 
   get(url){
     return fetch(url)
@@ -46,24 +51,6 @@ class Exchange {
       throw Error(response.statusText);
     }
     return response;
-  }
-}
-
-class Market {
-  constructor(currencyPair) {
-    this.currencyPair = currencyPair;
-    this.tradeVolume = 0;
-    this.exchangeRate = 0;
-    this.lowestAsk = 0;
-    this.highestBid = 0;
-    this.orderBook = {};
-  }
-}
-
-class OrderBook {
-  constructor() {
-    this.bids = [];
-    this.asks = [];
   }
 }
 

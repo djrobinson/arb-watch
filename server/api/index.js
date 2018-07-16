@@ -15,6 +15,8 @@ router.get('/getMarkets/:exchange', asyncMiddleware(async function(req, res, nex
 
 router.get('/test', function(req, res, next) {
   console.log("Trying home");
+  const poloniex = new Poloniex();
+  poloniex.initOrderBook();
   const bittrex = new Bittrex();
   bittrex.initOrderBook();
   res.json({test: "test"});
