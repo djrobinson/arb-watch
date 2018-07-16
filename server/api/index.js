@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Exchange = require('../integrations/Exchange');
+const { Exchange } = require('../integrations/Exchange');
 const ExchangeAggregator = require('../integrations/ExchangeAggregator');
-const Poloniex = require('../integrations/Poloniex');
-const Bittrex = require('../integrations/Bittrex');
 const asyncMiddleware = require('../utils/asyncMiddleware');
 
 
@@ -22,13 +20,15 @@ router.get('/test', function(req, res, next) {
 });
 
 router.ws('/echo', function(ws, req) {
+    const requestedExchanges = ['poloniex', 'bittrex'];
+    const exchangeAggregator = new ExchangeAggregator(requestedExchanges);
     console.log("Inside of ECHO");
     const aggregatorCallback = function(msg) {
       console.log("Inside aggregatorCallback", msg);
-      ws.send(msg.pair);
+      ws.send(msg);
     };
 
-    // exchangeAggregator.subscribeToOrderBook(aggregatorCallback);
+    exchangeAggregator.subscribeToOrderBooks(aggregatorCallback);
 
     ws.on('message', msg => {
         ws.send(msg)

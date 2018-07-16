@@ -11,18 +11,18 @@ class App extends Component {
         this.setState({ markets: data.result })
       });
 
-    fetch('/api/test')
-      .then(res => console.log("What's from test: ", res));
+    // fetch('/api/test')
+    //   .then(res => console.log("What's from test: ", res));
 
-    // const socket = new WebSocket('ws://localhost:3001/api/echo');
+    const socket = new WebSocket('ws://localhost:3001/api/echo');
 
-    // console.log("What is socket: ", socket);
+    console.log("What is socket: ", socket);
 
-    // socket.onopen = (event) => {
-    //   console.log("Socket has opened");
-    // };
+    socket.onopen = (event) => {
+      console.log("Socket has opened");
+    };
 
-    // socket.onmessage = (message) => console.log("What is message: ", message);
+    socket.onmessage = (message) => console.log("What is message: ", message);
 
   }
 

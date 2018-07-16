@@ -6,7 +6,7 @@ const signalR = require ('signalr-client');
 const jsonic = require('jsonic');
 const zlib = require('zlib');
 const events = require('events');
-const Exchange = require('./Exchange');
+const { Exchange } = require('./Exchange');
 
 class Bittrex extends Exchange {
   constructor() {
@@ -39,7 +39,6 @@ class Bittrex extends Exchange {
 
     const boundEmitter = this.emitOrderBook.bind(this);
 
-
     client.serviceHandlers.messageReceived = function (message) {
       let data = jsonic (message.utf8Data);
       let json;
@@ -57,16 +56,19 @@ class Bittrex extends Exchange {
               zlib.inflateRaw (raw, function (err, inflated) {
                 if (! err) {
                   json = JSON.parse (inflated.toString ('utf8'));
+                  boundEmitter(json);
                 }
               });
             }
           }
         }
       }
-      boundEmitter(json);
     };
   }
 
+  parseOrderDelta(orderDelta) {
+
+  }
 
   subscribeExchangeDeltas() {
     console.log("Try init exchange delta");
@@ -115,6 +117,5 @@ class Bittrex extends Exchange {
     }
   }
 }
-
 
 module.exports = Bittrex;

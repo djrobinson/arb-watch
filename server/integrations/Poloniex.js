@@ -4,7 +4,7 @@ AND CONTIANS EXCHANGE SPECIFIC FORMATTERS
 */
 const Moment = require('moment');
 const WebSocket = require('ws');
-const Exchange = require('./Exchange');
+const { Exchange } = require('./Exchange');
 
 class Poloniex extends Exchange {
 
@@ -30,12 +30,19 @@ class Poloniex extends Exchange {
     };
 
     socket.onmessage = msg => {
-      this.emitOrderBook(msg);
+      if (msg && msg.data) {
+        this.emitOrderBook(msg.data);
+      }
+
     }
 
     socket.onclose = function () {
       console.log("Websocket connection closed");
     };
+  }
+
+  parseOrderDelta(orderDelta) {
+
   }
 }
 

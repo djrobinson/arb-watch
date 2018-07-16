@@ -3,8 +3,7 @@ CLASS THAT INSTANTIATES MULTIPLE EXCHANGE OBJECTS AND CALLS THEIR
 APIS CONCURRENTLY TO THEN RETURN THE VALUES IN A DICTIONARY SO FE
 CAN DISPLAY COMBINED EXCHANGE INFORMATION
 */
-const Exchange = require('./Exchange');
-
+const { emitter } = require('./Exchange');
 const availableExchanges = require('./availableExchanges.js');
 
 
@@ -31,7 +30,7 @@ class ExchangeAggregator {
   subscribeToOrderBooks(callback) {
     console.log("Subscribing callback");
     this.exchanges.forEach(exchange => this.subscriptions[exchange].initOrderBook())
-    // var subscription = Poloniex.emitter.on('NEW_BID', callback);
+    emitter.on('ORDER_UPDATE', callback)
   }
 
   mergeOrderBooks(event) {
