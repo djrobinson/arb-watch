@@ -31,6 +31,7 @@ class Poloniex extends Exchange {
     socket.onerror = error => {
       console.log("Poloniex WS Error!");
       console.log("Error: ", error);
+      // Might do a retry here... seems to get 521s often
     }
 
     socket.onmessage = msg => {
