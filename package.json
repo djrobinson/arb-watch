@@ -8,7 +8,7 @@
   "scripts": {
     "compile": "babel server/ -d server-build/ && cp -r server/views server-build/",
     "clean": "rm -rf server-build && mkdir server-build",
-    "start-test": "npm run clean && npm run compile && PORT=3001 node bin/www",
+    "dev": "npm run clean && npm run compile && PORT=3001 node bin/www",
     "start": "PORT=3001 node bin/www",
     "heroku-postbuild": "cd client && npm install && npm run build"
   },
