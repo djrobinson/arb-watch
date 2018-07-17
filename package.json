@@ -2,11 +2,14 @@
   "name": "arb-watch",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": "8.9.4"
+  },
   "scripts": {
     "compile": "babel server/ -d server-build/ && cp -r server/views server-build/",
     "clean": "rm -rf server-build && mkdir server-build",
     "start": "npm run clean && npm run compile && PORT=3001 node bin/www",
-    "heroku-postbuild": "cd client && npm && npm run build"
+    "heroku-postbuild": "cd client && npm install && npm run build"
   },
   "dependencies": {
     "autobahn": "^18.3.2",
