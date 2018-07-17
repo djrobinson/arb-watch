@@ -17,7 +17,7 @@ class App extends Component {
         this.setState({ markets: data.result })
       });
 
-    const socket = openSocket('https://fierce-ridge-49535.herokuapp.com:8000');
+    const socket = openSocket('https://fierce-ridge-49535.herokuapp.com');
 
     socket.on('test', (message) => {
       let data = JSON.parse(message);

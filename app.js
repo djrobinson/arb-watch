@@ -49,8 +49,6 @@ io.on('connection', function(client) {
   });
 });
 
-const port = 8000;
-io.listen(port);
 
 app.use('/api', indexRouter);
 
