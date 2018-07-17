@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Exchange } = require('../integrations/Exchange');
 const ExchangeAggregator = require('../integrations/ExchangeAggregator');
-const asyncMiddleware = require('../utils/asyncMiddleWare');
+const asyncMiddleware = require('../utils/asyncResolve');
 
 router.get('/getMarkets/:exchange', asyncMiddleware(async function(req, res, next) {
   console.log("Trying home");
