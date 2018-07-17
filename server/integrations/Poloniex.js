@@ -48,30 +48,32 @@ class Poloniex extends Exchange {
         type: 'ORDER_BOOK_INIT'
       }
       const stringBids = data[2][0][1].orderBook[1];
-      const bidRates = Object.keys(stringBids);
-      const bids = bidRates.map(bid => {
+      const bidRates = Object.keys(stringBids).slice(0, 50);
+      const bids = bidRates.reduce((aggregator, bid) => {
         let order = {
           exchange: this.exchangeName,
-          rate: bid,
+          rate: parseFloat(bid),
           amount: parseFloat(stringBids[bid])
         };
-        return order;
-      });
+        aggregator[this.exchangeName + bid] = order;
+        return aggregator;
+      }, {});
 
       const stringAsks = data[2][0][1].orderBook[0];
-      const askRates = Object.keys(stringAsks);
-      const asks = askRates.map(ask => {
+      const askRates = Object.keys(stringAsks).slice(0, 50);
+      const asks = askRates.reduce((aggregator, ask) => {
         let order = {
           exchange: this.exchangeName,
-          rate: ask,
+          rate: parseFloat(ask),
           amount: parseFloat(stringAsks[ask])
         };
-        return order;
-      });
+        aggregator[this.exchangeName + ask] = order;
+        return aggregator;
+      }, {});
 
       // Take first 500 to match bittrex. Would be in config if more exchanges
-      initOrderBook.asks = asks.slice(0, 500);
-      initOrderBook.bids = bids.slice(0, 500);
+      initOrderBook.asks = asks;
+      initOrderBook.bids = bids;
       this.emitOrderBook(initOrderBook);
     }
     if (data && data[2]) {
@@ -81,6 +83,7 @@ class Poloniex extends Exchange {
             // 1 for Bid
             let bidChange = {
               type: 'BID_UPDATE',
+              rateString: this.exchangeName + delta[2],
               rate: parseFloat(delta[2]),
               amount: parseFloat(delta[3])
             }
@@ -89,6 +92,7 @@ class Poloniex extends Exchange {
             // 0 for ask
             let askChange = {
               type: 'ASK_UPDATE',
+              rateString: this.exchangeName + delta[2],
               rate: parseFloat(delta[2]),
               amount: parseFloat(delta[3])
             }

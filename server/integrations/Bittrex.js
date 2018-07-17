@@ -36,7 +36,7 @@ class Bittrex extends Exchange {
     self.client.serviceHandlers.connected = function (connection) {
       console.log ('connected');
       self.client.call ('c2', 'QueryExchangeState', market).done (function (err, result) {
-        if (err) { return console.error (err); }
+        if (err) { return console.log(err); }
         if (result === true) {
           console.log ('Subscribed to ' + market);
         }
@@ -74,7 +74,7 @@ class Bittrex extends Exchange {
 
 
     self.client.call ('c2', 'SubscribeToExchangeDeltas', market).done (function (err, result) {
-      if (err) { return console.error (err); }
+      if (err) { return console.log (err); }
       if (result === true) {
         console.log ('Subscribed to ' + market);
       }
@@ -109,29 +109,32 @@ class Bittrex extends Exchange {
   }
 
   parseOrderDelta(type, orderDelta) {
+    console.log("Bittrex is doing something");
     if (type === 'ORDER_BOOK_INIT' && orderDelta['Z'] && orderDelta['S']) {
       const sortedBids = orderDelta['Z'].sort((a, b) => {
         return b.R - a.R;
-      });
+      }).slice(0, 50);
       const sortedAsks = orderDelta['S'].sort((a, b) => {
         return a.R - b.R;
-      });
-      const bids = sortedBids.map(bid => {
+      }).slice(0, 50);
+      const bids = sortedBids.reduce((aggregator, bid) => {
           let order = {
             exchange: this.exchangeName,
-            rate: bid.R.toString(),
+            rate: bid.R,
             amount: parseFloat(bid.Q)
           };
-          return order;
-      })
-      const asks = sortedAsks.map(ask => {
+          aggregator[this.exchangeName + bid.R.toString()] = order;
+          return aggregator;
+      }, {})
+      const asks = sortedAsks.reduce((aggregator, ask) => {
           let order = {
             exchange: this.exchangeName,
-            rate: ask.R.toString(),
+            rate: ask.R,
             amount: parseFloat(ask.Q)
           };
-          return order;
-      })
+          aggregator[this.exchangeName + ask.R.toString()] = order;
+          return aggregator;
+      }, {})
       let initOrderBook = {
         type,
         bids: bids,
@@ -143,6 +146,7 @@ class Bittrex extends Exchange {
       orderDelta['Z'].forEach(change => {
         let orderDelta = {
           type: 'BID_UPDATE',
+          rateString: this.exchangeName + change.R.toString(),
           rate: change.R,
           amount: parseFloat(change.Q)
         }
@@ -151,6 +155,7 @@ class Bittrex extends Exchange {
       orderDelta['S'].forEach(change => {
         let orderDelta = {
           type: 'ASK_UPDATE',
+          rateString: this.exchangeName + change.R.toString(),
           rate: change.R,
           amount: parseFloat(change.Q)
         }

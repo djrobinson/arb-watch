@@ -14,8 +14,8 @@ class ExchangeAggregator {
     this.subscriptions = {};
     this.exchanges = [];
     this.mergedOrderBook = {
-      asks: [],
-      bids: []
+      asks: null,
+      bids: null
     };
     if (exchanges.length) {
       exchanges.forEach(exchangeName => {
@@ -36,30 +36,44 @@ class ExchangeAggregator {
     const boundCallback = callback.bind(this);
     this.exchanges.forEach(exchange => this.subscriptions[exchange].initOrderBook())
     emitter.on('ORDER_BOOK_INIT', (event) => { this.mergeOrderBooks(event, boundCallback) })
-    emitter.on('ORDER_UPDATE', callback)
+    emitter.on('ORDER_UPDATE', (event) => {
+      this.updateOrderBook(event);
+      boundCallback(JSON.stringify(event));
+    })
   }
 
   mergeOrderBooks(event, callback) {
-    if (this.mergedOrderBook.bids.length > 0) {
-
-      const allBids = this.mergedOrderBook.bids.concat(event.bids);
-      console.log("We're merging the bids now", this.mergedOrderBook.bids);
-      this.mergedOrderBook.bids = allBids.sort((a, b) => {
-        return parseFloat(b.rate) - parseFloat(a.rate);
+    if (this.mergedOrderBook.bids) {
+      const allBids = {...event.bids, ...this.mergedOrderBook.bids};
+      const allBidRates = Object.keys(allBids);
+      const orderBids = allBidRates.sort((a, b) => {
+        return allBids[b].rate - allBids[a].rate;
       });
+      const bidBook = {};
+      orderBids.forEach(bid => {
+        bidBook[bid] = allBids[bid];
+      })
+      this.mergedOrderBook.bids = bidBook;
     } else {
       this.mergedOrderBook.bids = event.bids;
     };
 
-    if (this.mergedOrderBook.asks.length > 0) {
-      const allAsks = this.mergedOrderBook.asks.concat(event.asks);
-      this.mergedOrderBook.asks = allAsks.sort((a, b) => {
-        return parseFloat(a.rate) - parseFloat(b.rate)
+    // TODO: GET BIDS AND ASKS LOGIC TOGETHER OR FIND A REASON TO STAY APART
+    if (this.mergedOrderBook.asks) {
+      const allAsks = {...event.asks, ...this.mergedOrderBook.asks};
+      const allAskRates = Object.keys(allAsks);
+      const orderAsks = allAskRates.sort((a, b) => {
+        return allAsks[a].rate - allAsks[b].rate;
       });
+      const askBook = {};
+      orderAsks.forEach(ask => {
+        askBook[ask] = allAsks[ask];
+      })
+      this.mergedOrderBook.asks = askBook;
     } else {
       this.mergedOrderBook.asks = event.asks;
     };
-    console.log("Merging order books");
+
     const orderBookEvent = {
       type: 'ORDER_BOOK_INIT',
       orderBook: this.mergedOrderBook
@@ -68,6 +82,47 @@ class ExchangeAggregator {
     callback(JSON.stringify(orderBookEvent));
   }
 
+  // Will use this same logic in React. Provide both backend & frontend orderbook
+  updateOrderBook(event) {
+    let book = {};
+    let type = '';
+    if (event.type === 'BID_UPDATE') {
+      type = 'bids';
+      book = this.mergedOrderBook.bids;
+    }
+    if (event.type === 'ASK_UPDATE') {
+      type = 'asks';
+      book = this.mergedOrderBook.asks;
+    }
+
+    if (!event.amount) {
+      if (book[event.rateString]) {
+        delete book[event.rateString];
+      }
+      this.mergedOrderBook[type] = book;
+    } else {
+      let order = {
+        exchange: event.exchange,
+        rate: event.rate,
+        amount: event.amount
+      };
+      book[event.rateString] = order;
+      this.mergedOrderBook[type] = book;
+    }
+    Object.keys(this.mergedOrderBook.bids).forEach((bid, i) => {
+      if (i < 20) {
+        console.log("Bids " + i + ": " + this.mergedOrderBook.bids[bid].rate)
+      }
+    });
+    Object.keys(this.mergedOrderBook.asks).forEach((ask, i) => {
+      if (i < 20) {
+        console.log("Ask " + i + ": " + this.mergedOrderBook.asks[ask].exchange + " - " + this.mergedOrderBook.asks[ask].rate)
+      }
+    });
+  }
+
 }
+
+
 
 module.exports = ExchangeAggregator;
