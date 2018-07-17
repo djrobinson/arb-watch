@@ -45,7 +45,7 @@ class ExchangeAggregator {
         orderBook: this.mergedOrderBook
       }
       boundCallback(JSON.stringify(orderBookEvent));
-    }, 2000)
+    }, 1000)
   }
 
   mergeOrderBooks(event, callback) {
@@ -64,7 +64,6 @@ class ExchangeAggregator {
       this.mergedOrderBook.bids = event.bids;
     };
 
-    // TODO: GET BIDS AND ASKS LOGIC TOGETHER OR FIND A REASON TO STAY APART
     if (this.mergedOrderBook.asks) {
       const allAsks = {...event.asks, ...this.mergedOrderBook.asks};
       const allAskRates = Object.keys(allAsks);
@@ -90,7 +89,6 @@ class ExchangeAggregator {
 
   // Will use this same logic in React. Provide both backend & frontend orderbook
   updateOrderBook(event) {
-    console.log("What is the update event? ", event);
     let book = {};
     let type = '';
     if (event.type === 'BID_UPDATE') {
@@ -122,7 +120,6 @@ class ExchangeAggregator {
         amount: event.amount
       };
       book[event.rateString] = order;
-      // Need to sort here
       const sortedBook = Object.keys(book).sort((a, b) => {
         if (type === 'bids') {
           return book[b].rate - book[a].rate;
