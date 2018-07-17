@@ -30,8 +30,12 @@ class Exchange {
 
   emitOrderBook(order) {
       order['exchange'] = this.exchangeName;
-      console.log("We're emitting the order", order);
-      emitter.emit('ORDER_UPDATE', JSON.stringify(order));
+      console.log("What is order: ", order.type);
+      if (order.type === 'ORDER_BOOK_INIT') {
+        emitter.emit(order.type, order);
+      } else {
+        emitter.emit('ORDER_UPDATE', JSON.stringify(order));
+      }
   }
 
   get(url){

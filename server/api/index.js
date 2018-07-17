@@ -24,7 +24,6 @@ router.ws('/echo', function(ws, req) {
     const exchangeAggregator = new ExchangeAggregator(requestedExchanges);
     console.log("Inside of ECHO");
     const aggregatorCallback = function(msg) {
-      console.log("Inside aggregatorCallback", msg);
       ws.send(msg);
     };
 

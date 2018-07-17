@@ -14,8 +14,8 @@ class ExchangeAggregator {
     this.subscriptions = {};
     this.exchanges = [];
     this.mergedOrderBook = {
-      asks: {},
-      bids: {}
+      asks: [],
+      bids: []
     };
     if (exchanges.length) {
       exchanges.forEach(exchangeName => {
@@ -33,15 +33,39 @@ class ExchangeAggregator {
 
   subscribeToOrderBooks(callback) {
     console.log("Subscribing callback");
+    const boundCallback = callback.bind(this);
     this.exchanges.forEach(exchange => this.subscriptions[exchange].initOrderBook())
-    // emitter.on('ORDER_BOOK_INIT', this.mergeOrderBooks(event, callback))
+    emitter.on('ORDER_BOOK_INIT', (event) => { this.mergeOrderBooks(event, boundCallback) })
     emitter.on('ORDER_UPDATE', callback)
   }
 
   mergeOrderBooks(event, callback) {
-    console.log("Merging order books");
+    if (this.mergedOrderBook.bids.length > 0) {
 
-    callback(this.mergedOrderBook)
+      const allBids = this.mergedOrderBook.bids.concat(event.bids);
+      console.log("We're merging the bids now", this.mergedOrderBook.bids);
+      this.mergedOrderBook.bids = allBids.sort((a, b) => {
+        return parseFloat(b.rate) - parseFloat(a.rate);
+      });
+    } else {
+      this.mergedOrderBook.bids = event.bids;
+    };
+
+    if (this.mergedOrderBook.asks.length > 0) {
+      const allAsks = this.mergedOrderBook.asks.concat(event.asks);
+      this.mergedOrderBook.asks = allAsks.sort((a, b) => {
+        return parseFloat(a.rate) - parseFloat(b.rate)
+      });
+    } else {
+      this.mergedOrderBook.asks = event.asks;
+    };
+    console.log("Merging order books");
+    const orderBookEvent = {
+      type: 'ORDER_BOOK_INIT',
+      orderBook: this.mergedOrderBook
+    }
+
+    callback(JSON.stringify(orderBookEvent));
   }
 
 }

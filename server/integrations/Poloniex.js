@@ -49,21 +49,29 @@ class Poloniex extends Exchange {
       }
       const stringBids = data[2][0][1].orderBook[1];
       const bidRates = Object.keys(stringBids);
-      const bids = bidRates.reduce((aggregator, bid) => {
-        aggregator[bid] = parseFloat(stringBids[bid])
-        return aggregator;
-      }, {});
+      const bids = bidRates.map(bid => {
+        let order = {
+          exchange: this.exchangeName,
+          rate: bid,
+          amount: parseFloat(stringBids[bid])
+        };
+        return order;
+      });
 
       const stringAsks = data[2][0][1].orderBook[0];
       const askRates = Object.keys(stringAsks);
-      const asks = askRates.reduce((aggregator, ask) => {
-        aggregator[ask] = parseFloat(stringAsks[ask])
-        return aggregator;
-      }, {});
+      const asks = askRates.map(ask => {
+        let order = {
+          exchange: this.exchangeName,
+          rate: ask,
+          amount: parseFloat(stringAsks[ask])
+        };
+        return order;
+      });
 
-      initOrderBook.asks = asks;
-      initOrderBook.bids = bids;
-      console.log("Orderbook asks: ", initOrderBook.asks);
+      // Take first 500 to match bittrex. Would be in config if more exchanges
+      initOrderBook.asks = asks.slice(0, 500);
+      initOrderBook.bids = bids.slice(0, 500);
       this.emitOrderBook(initOrderBook);
     }
     if (data && data[2]) {

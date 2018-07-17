@@ -55,7 +55,6 @@ class Bittrex extends Exchange {
         zlib.inflateRaw (raw, function (err, inflated) {
           if (! err) {
             let json = JSON.parse (inflated.toString ('utf8'));
-            console.log ("R json: ", json);
             boundParser('ORDER_BOOK_INIT', json);
             // Start only after order book inits
             boundInitExchangeDelta();
@@ -117,15 +116,22 @@ class Bittrex extends Exchange {
       const sortedAsks = orderDelta['S'].sort((a, b) => {
         return a.R - b.R;
       });
-      const bids = sortedBids.reduce((accumulator, order) => {
-          accumulator[order.R.toString()] = parseFloat(order.Q);
-          return accumulator;
-      }, {})
-      const asks = sortedAsks.reduce((accumulator, order) => {
-          accumulator[order.R.toString()] = parseFloat(order.Q);
-          return accumulator;
-      }, {})
-      console.log("Bids?", bids);
+      const bids = sortedBids.map(bid => {
+          let order = {
+            exchange: this.exchangeName,
+            rate: bid.R.toString(),
+            amount: parseFloat(bid.Q)
+          };
+          return order;
+      })
+      const asks = sortedAsks.map(ask => {
+          let order = {
+            exchange: this.exchangeName,
+            rate: ask.R.toString(),
+            amount: parseFloat(ask.Q)
+          };
+          return order;
+      })
       let initOrderBook = {
         type,
         bids: bids,
@@ -138,7 +144,7 @@ class Bittrex extends Exchange {
         let orderDelta = {
           type: 'BID_UPDATE',
           rate: change.R,
-          amount: change.Q
+          amount: parseFloat(change.Q)
         }
         this.emitOrderBook(orderDelta);
       });
@@ -146,7 +152,7 @@ class Bittrex extends Exchange {
         let orderDelta = {
           type: 'ASK_UPDATE',
           rate: change.R,
-          amount: change.Q
+          amount: parseFloat(change.Q)
         }
         this.emitOrderBook(orderDelta);
       });
