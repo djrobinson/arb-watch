@@ -38,8 +38,14 @@ class ExchangeAggregator {
     emitter.on('ORDER_BOOK_INIT', (event) => { this.mergeOrderBooks(event, boundCallback) })
     emitter.on('ORDER_UPDATE', (event) => {
       this.updateOrderBook(event);
-      boundCallback(JSON.stringify(event));
-    })
+    });
+    setInterval(() => {
+      const orderBookEvent = {
+        type: 'ORDER_BOOK_INIT',
+        orderBook: this.mergedOrderBook
+      }
+      boundCallback(JSON.stringify(orderBookEvent));
+    }, 2000)
   }
 
   mergeOrderBooks(event, callback) {
@@ -84,6 +90,7 @@ class ExchangeAggregator {
 
   // Will use this same logic in React. Provide both backend & frontend orderbook
   updateOrderBook(event) {
+    console.log("What is the update event? ", event);
     let book = {};
     let type = '';
     if (event.type === 'BID_UPDATE') {
@@ -100,7 +107,7 @@ class ExchangeAggregator {
         delete book[event.rateString];
       }
       this.mergedOrderBook[type] = book;
-    } else {
+    } else if (book[event.rateString]) {
       let order = {
         exchange: event.exchange,
         rate: event.rate,
@@ -108,19 +115,29 @@ class ExchangeAggregator {
       };
       book[event.rateString] = order;
       this.mergedOrderBook[type] = book;
+    } else {
+      let order = {
+        exchange: event.exchange,
+        rate: event.rate,
+        amount: event.amount
+      };
+      book[event.rateString] = order;
+      // Need to sort here
+      const sortedBook = Object.keys(book).sort((a, b) => {
+        if (type === 'bids') {
+          return book[b].rate - book[a].rate;
+        }
+        if (type === 'asks') {
+          return book[a].rate - book[b].rate;
+        }
+      });
+      const newBook = {};
+      sortedBook.forEach(b => {
+        newBook[b] = book[b];
+      })
+      this.mergedOrderBook[type] = newBook;
     }
-    Object.keys(this.mergedOrderBook.bids).forEach((bid, i) => {
-      if (i < 20) {
-        console.log("Bids " + i + ": " + this.mergedOrderBook.bids[bid].rate)
-      }
-    });
-    Object.keys(this.mergedOrderBook.asks).forEach((ask, i) => {
-      if (i < 20) {
-        console.log("Ask " + i + ": " + this.mergedOrderBook.asks[ask].exchange + " - " + this.mergedOrderBook.asks[ask].rate)
-      }
-    });
   }
-
 }
 
 

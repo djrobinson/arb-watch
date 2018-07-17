@@ -27,14 +27,11 @@ class App extends Component {
     socket.onmessage = (message) => {
         let data = JSON.parse(message.data);
         if (data.type === 'ORDER_BOOK_INIT') {
-
+          console.log("What is order book: ", data);
           this.setState({
             bids: data.orderBook.bids,
             asks: data.orderBook.asks
           })
-        }
-        if (data.type === 'ASK_UPDATE' || data.type === 'BID_UPDATE') {
-          this.updateOrderBook(data);
         }
     };
 

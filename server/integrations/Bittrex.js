@@ -109,7 +109,6 @@ class Bittrex extends Exchange {
   }
 
   parseOrderDelta(type, orderDelta) {
-    console.log("Bittrex is doing something");
     if (type === 'ORDER_BOOK_INIT' && orderDelta['Z'] && orderDelta['S']) {
       const sortedBids = orderDelta['Z'].sort((a, b) => {
         return b.R - a.R;
