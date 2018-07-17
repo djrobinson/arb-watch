@@ -5,8 +5,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var app = express();
 var server = require('http').Server(app);
-var expressWs = require('express-ws')(app, server);
+var io = require('socket.io')(server);
 
+var ExchangeAggregator = require('./server-build/integrations/ExchangeAggregator');
 var indexRouter = require('./server-build/api/index');
 
 // view engine setup
@@ -18,6 +19,38 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'client/build')));
+
+io.on('connection', function(client) {
+  const requestedExchanges = ['bittrex', 'poloniex'];
+  const exchangeAggregator = new ExchangeAggregator(requestedExchanges);
+  console.log("Inside of ECHO");
+  const aggregatorCallback = function(msg) {
+    client.emit('test', msg);
+  };
+
+
+  exchangeAggregator.subscribeToOrderBooks(aggregatorCallback);
+  client.on('disconnect', req => {
+    console.log("Websocket closing");
+    client.disconnect(true);
+
+  });
+
+  client.on('error', function(error) {
+    if(error != null) {
+        console.log('error: %s', error);
+
+    }
+  });
+
+  client.on('end', function() {
+    console.log("Websocket closing");
+    client.disconnect(true);
+  });
+});
+
+const port = 8000;
+io.listen(port);
 
 app.use('/api', indexRouter);
 
@@ -41,4 +74,4 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-module.exports = {app: app,server: server};
+module.exports = {app: app, server: server};

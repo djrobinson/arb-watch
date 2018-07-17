@@ -43,6 +43,15 @@ class Bittrex extends Exchange {
       });
     }
 
+    self.client.serviceHandlers.connectFailed = (err) => {
+      console.log("Bittrex WS Error");
+      console.log("Error: ", err);
+    }
+
+    self.client.serviceHandlers.onerror = (err) => {
+      console.log("Bittrex WS Error");
+      console.log("Error: ", err);
+    }
 
     self.client.serviceHandlers.messageReceived = function (message) {
       let data = jsonic (message.utf8Data);

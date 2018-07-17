@@ -89,6 +89,7 @@ class ExchangeAggregator {
 
   // Will use this same logic in React. Provide both backend & frontend orderbook
   updateOrderBook(event) {
+
     let book = {};
     let type = '';
     if (event.type === 'BID_UPDATE') {
@@ -99,40 +100,41 @@ class ExchangeAggregator {
       type = 'asks';
       book = this.mergedOrderBook.asks;
     }
-
-    if (!event.amount) {
-      if (book[event.rateString]) {
-        delete book[event.rateString];
+    if (book) {
+      if (!event.amount) {
+        if (book[event.rateString]) {
+          delete book[event.rateString];
+        }
+        this.mergedOrderBook[type] = book;
+      } else if (book[event.rateString]) {
+        let order = {
+          exchange: event.exchange,
+          rate: event.rate,
+          amount: event.amount
+        };
+        book[event.rateString] = order;
+        this.mergedOrderBook[type] = book;
+      } else {
+        let order = {
+          exchange: event.exchange,
+          rate: event.rate,
+          amount: event.amount
+        };
+        book[event.rateString] = order;
+        const sortedBook = Object.keys(book).sort((a, b) => {
+          if (type === 'bids') {
+            return book[b].rate - book[a].rate;
+          }
+          if (type === 'asks') {
+            return book[a].rate - book[b].rate;
+          }
+        });
+        const newBook = {};
+        sortedBook.forEach(b => {
+          newBook[b] = book[b];
+        })
+        this.mergedOrderBook[type] = newBook;
       }
-      this.mergedOrderBook[type] = book;
-    } else if (book[event.rateString]) {
-      let order = {
-        exchange: event.exchange,
-        rate: event.rate,
-        amount: event.amount
-      };
-      book[event.rateString] = order;
-      this.mergedOrderBook[type] = book;
-    } else {
-      let order = {
-        exchange: event.exchange,
-        rate: event.rate,
-        amount: event.amount
-      };
-      book[event.rateString] = order;
-      const sortedBook = Object.keys(book).sort((a, b) => {
-        if (type === 'bids') {
-          return book[b].rate - book[a].rate;
-        }
-        if (type === 'asks') {
-          return book[a].rate - book[b].rate;
-        }
-      });
-      const newBook = {};
-      sortedBook.forEach(b => {
-        newBook[b] = book[b];
-      })
-      this.mergedOrderBook[type] = newBook;
     }
   }
 }

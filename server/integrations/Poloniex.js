@@ -28,6 +28,11 @@ class Poloniex extends Exchange {
       socket.send(JSON.stringify(params));
     };
 
+    socket.onerror = error => {
+      console.log("Poloniex WS Error!");
+      console.log("Error: ", error);
+    }
+
     socket.onmessage = msg => {
       if (msg && msg.data) {
         this.parseOrderDelta(msg.data);

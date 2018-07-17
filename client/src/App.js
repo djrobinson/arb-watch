@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Col, Row } from 'react-bootstrap';
+import openSocket from 'socket.io-client';
 import './App.css';
 
 class App extends Component {
@@ -16,25 +17,17 @@ class App extends Component {
         this.setState({ markets: data.result })
       });
 
-    const socket = new WebSocket('ws://localhost:3001/api/echo');
+    const socket = openSocket('http://localhost:8000');
 
-    console.log("What is socket: ", socket);
-
-    socket.onopen = (event) => {
-      console.log("Socket has opened");
-    };
-
-    socket.onmessage = (message) => {
-        let data = JSON.parse(message.data);
-        if (data.type === 'ORDER_BOOK_INIT') {
-          console.log("What is order book: ", data);
-          this.setState({
-            bids: data.orderBook.bids,
-            asks: data.orderBook.asks
-          })
-        }
-    };
-
+    socket.on('test', (message) => {
+      let data = JSON.parse(message);
+      if (data.type === 'ORDER_BOOK_INIT') {
+        this.setState({
+          bids: data.orderBook.bids,
+          asks: data.orderBook.asks
+        })
+      }
+    });
   }
 
 

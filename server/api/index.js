@@ -19,24 +19,5 @@ router.get('/test', function(req, res, next) {
   res.json({test: "test"});
 });
 
-router.ws('/echo', function(ws, req) {
-    const requestedExchanges = ['bittrex', 'poloniex'];
-    const exchangeAggregator = new ExchangeAggregator(requestedExchanges);
-    console.log("Inside of ECHO");
-    const aggregatorCallback = function(msg) {
-      ws.send(msg);
-    };
-
-    exchangeAggregator.subscribeToOrderBooks(aggregatorCallback);
-
-    ws.on('message', msg => {
-        ws.send(msg)
-
-    });
-
-    ws.on('close', () => {
-        console.log('WebSocket was closed')
-    });
-});
 
 module.exports = router;
