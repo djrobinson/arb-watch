@@ -53,6 +53,7 @@ var Poloniex = function (_Exchange) {
       socket.onerror = function (error) {
         console.log("Poloniex WS Error!");
         console.log("Error: ", error);
+        // Might do a retry here... seems to get 521s often
       };
 
       socket.onmessage = function (msg) {

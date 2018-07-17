@@ -7,7 +7,7 @@ var _require = require('../integrations/Exchange'),
     Exchange = _require.Exchange;
 
 var ExchangeAggregator = require('../integrations/ExchangeAggregator');
-var asyncMiddleware = require('../utils/asyncMiddleware');
+var asyncMiddleware = require('../utils/asyncMiddleWare');
 
 router.get('/getMarkets/:exchange', asyncMiddleware(function _callee(req, res, next) {
   var exchange;
