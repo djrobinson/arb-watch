@@ -24,12 +24,19 @@ npm test
 
 ### Adding a New Integration:
 
-To add a new integration, you need to extend the `Exchange` class found in `arb-watch/server/base/Exchange` and implement a few common methods that all descendants of Exchange require:
+To add a new integration, you need to extend the `Exchange` class found in `arb-watch/server/base/Exchange` and implement a few common methods that all descendants of Exchange require. When that is complete you can add the exchange to the `/arb-watch/server/exchanges.js` file and update the  to begin to see websocket events aggregated into a single orderbook w/ other active exchange events. Here is the basic layout of what a new exchange integration should look like:
 
 ```
 const { Exchange } = require('../base/Exchange');
 
 class NewIntegration extends Exchange {
+
+  constructor() {
+    this.exchangeName // lowercase exchange name
+    this.wsuri  // websocket uri for exchange
+    this.marketsUrl // Rest endpoint for basic markets data
+  }
+  
   // This takes the raw rest response from the exchange's market  
   // info and formats it in the following format:
   // [{ market: BTC-LTC }, { market: BTC-DASH }...]
@@ -99,7 +106,7 @@ class NewIntegration extends Exchange {
       },
       ...
     }
-  // New Bid Order. Prepend exchange to rate for unique ID in combined orderbook
+  // New Bid Order. Prepend exchange name to rate for unique ID in combined orderbook
     {
       type: 'BID_UPDATE',
       rateString: '<exchangename>0.0002',
@@ -110,7 +117,7 @@ class NewIntegration extends Exchange {
   // New Ask Order
     {
       type: 'ASK_UPDATE',
-      rateString: 'bittrex0.0003',
+      rateString: '<exchangename>0.0003',
       rate: 0.0003,
       amount: 1000
     }
