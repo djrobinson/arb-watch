@@ -7,22 +7,40 @@
   height: 80px;
 }
 
-.App-header {
+.header {
+  position: fixed;
+  width: 100%;
   background-color: #222;
   height: 150px;
   padding: 20px;
   color: white;
+  z-index: 5;
 }
 
-.App-title {
-  font-size: 1.5em;
-}
-
-.App-intro {
-  font-size: large;
+.header-row {
+  height: 150px;
 }
 
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+.coin-tile {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  height: 150px;
+  border: solid 2px gray;
+}
+
+.coin-tile:hover {
+  background: gray;
+}
+
+.coin-tiles {
+  flex-direction: column;
+  justify-content: flex-start;
 }

@@ -45,17 +45,17 @@ router.get('/getMarkets', asyncMiddleware(function _callee2(req, res, next) {
             var market1 = markets.filter(function (mkt) {
               return mkt[0].hasOwnProperty('logo');
             })[0];
+            // Will  need to rework this if more than 2 exchanges
             var market2 = markets.filter(function (mkt) {
               return !mkt[0].hasOwnProperty('logo');
             })[0];
-            console.log("Market 1 : ", market1);
+
             var sharedMarkets = market1.filter(function (val1) {
               return market2.some(function (val2) {
-                console.log("Shared check", val1, val2);
                 return val1.market === val2.market;
               });
             });
-            console.log("What is shared? ", sharedMarkets);
+
             res.json(sharedMarkets);
           });
 
