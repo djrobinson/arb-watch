@@ -2,6 +2,8 @@
 
 *A realtime multi-exchange orderbook analysis tool for finding cross-exchange arbitrage opportunities*
 
+Deployed here: https://fierce-ridge-49535.herokuapp.com/
+
 ### Setup
 
 **Server Instructions**: Transpiles code to `server-build` folder and runs the app on `http://localhost:3001`.
