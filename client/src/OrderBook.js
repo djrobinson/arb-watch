@@ -106,7 +106,7 @@ class OrderBook extends Component {
               <Col md={3}><span>Bid Rate</span></Col>
             </Row>
 
-            { (Object.keys(this.state.bids).length) &&
+            { (this.state.bids && Object.keys(this.state.bids).length) &&
               Object.keys(this.state.bids).map((bid, i) => {
                 return (
                   <Row key={i} className={this.state.bids[bid].exchange +" order-row bid-row"}>
@@ -129,7 +129,7 @@ class OrderBook extends Component {
               <Col md={3}><span>Currency Pair</span></Col>
             </Row>
             {
-              (Object.keys(this.state.asks).length) &&
+              (this.state.asks && Object.keys(this.state.asks).length) &&
               Object.keys(this.state.asks).map((ask, i) => {
                 return (
                   <Row key={i} className={this.state.asks[ask].exchange +" order-row ask-row"}>
