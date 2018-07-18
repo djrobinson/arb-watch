@@ -5,7 +5,6 @@ AND CONTIANS EXCHANGE SPECIFIC FORMATTERS
 const signalR = require ('signalr-client');
 const jsonic = require('jsonic');
 const zlib = require('zlib');
-const events = require('events');
 const { Exchange } = require('../base/Exchange');
 
 class Bittrex extends Exchange {
