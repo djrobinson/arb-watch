@@ -14,7 +14,7 @@ CAN DISPLAY COMBINED EXCHANGE INFORMATION
 var _require = require('./Exchange'),
     emitter = _require.emitter;
 
-var availableExchanges = require('./availableExchanges.js');
+var availableExchanges = require('../exchanges');
 
 var ExchangeAggregator = function () {
   function ExchangeAggregator(exchanges) {
@@ -46,13 +46,13 @@ var ExchangeAggregator = function () {
     }
   }, {
     key: 'subscribeToOrderBooks',
-    value: function subscribeToOrderBooks(callback) {
+    value: function subscribeToOrderBooks(market, callback) {
       var _this2 = this;
 
       console.log("Subscribing callback");
       var boundCallback = callback.bind(this);
       this.exchanges.forEach(function (exchange) {
-        return _this2.subscriptions[exchange].initOrderBook();
+        return _this2.subscriptions[exchange].initOrderBook(market);
       });
       emitter.on('ORDER_BOOK_INIT', function (event) {
         _this2.mergeOrderBooks(event, boundCallback);
@@ -67,6 +67,15 @@ var ExchangeAggregator = function () {
         };
         boundCallback(JSON.stringify(orderBookEvent));
       }, 1000);
+    }
+  }, {
+    key: 'removeAllSubscriptions',
+    value: function removeAllSubscriptions() {
+      var _this3 = this;
+
+      this.exchanges.forEach(function (exchange) {
+        return _this3.subscriptions[exchange].stopOrderBook();
+      });
     }
   }, {
     key: 'mergeOrderBooks',

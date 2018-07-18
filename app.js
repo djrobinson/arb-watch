@@ -21,19 +21,25 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'client/build')));
 
 io.on('connection', function(client) {
-  const requestedExchanges = ['bittrex', 'poloniex'];
-  const exchangeAggregator = new ExchangeAggregator(requestedExchanges);
+  const exchanges = ['bittrex', 'poloniex'];
+  const exchangeAggregator = new ExchangeAggregator(exchanges);
   console.log("Inside of ECHO");
   const aggregatorCallback = function(msg) {
     client.emit('test', msg);
   };
 
+  client.on('startMarket', req => {
+    console.log("What is market", req);
+    exchangeAggregator.removeAllSubscriptions();
+    exchangeAggregator.subscribeToOrderBooks(req.market, aggregatorCallback);
+  })
 
-  exchangeAggregator.subscribeToOrderBooks(aggregatorCallback);
+
+
   client.on('disconnect', req => {
     console.log("Websocket closing");
+    exchangeAggregator.removeAllSubscriptions();
     client.disconnect(true);
-
   });
 
   client.on('error', function(error) {

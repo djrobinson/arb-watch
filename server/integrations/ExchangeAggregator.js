@@ -4,7 +4,7 @@ APIS CONCURRENTLY TO THEN RETURN THE VALUES IN A DICTIONARY SO FE
 CAN DISPLAY COMBINED EXCHANGE INFORMATION
 */
 const { emitter } = require('./Exchange');
-const availableExchanges = require('./availableExchanges.js');
+const availableExchanges = require('../exchanges');
 
 
 class ExchangeAggregator {
@@ -31,10 +31,10 @@ class ExchangeAggregator {
       console.log("What is socket msg ", msg);
   }
 
-  subscribeToOrderBooks(callback) {
+  subscribeToOrderBooks(market, callback) {
     console.log("Subscribing callback");
     const boundCallback = callback.bind(this);
-    this.exchanges.forEach(exchange => this.subscriptions[exchange].initOrderBook())
+    this.exchanges.forEach(exchange => this.subscriptions[exchange].initOrderBook(market))
     emitter.on('ORDER_BOOK_INIT', (event) => { this.mergeOrderBooks(event, boundCallback) })
     emitter.on('ORDER_UPDATE', (event) => {
       this.updateOrderBook(event);
@@ -46,6 +46,10 @@ class ExchangeAggregator {
       }
       boundCallback(JSON.stringify(orderBookEvent));
     }, 1000)
+  }
+
+  removeAllSubscriptions() {
+    this.exchanges.forEach(exchange => this.subscriptions[exchange].stopOrderBook())
   }
 
   mergeOrderBooks(event, callback) {

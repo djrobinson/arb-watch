@@ -29,22 +29,64 @@ var Bittrex = function (_Exchange) {
     var _this = _possibleConstructorReturn(this, (Bittrex.__proto__ || Object.getPrototypeOf(Bittrex)).call(this));
 
     _this.exchangeName = 'bittrex';
-    // Temp hardcode for testing
-    var market = 'BTC-ETH';
-    _this.market = market;
-    _this.emitter = new events.EventEmitter();
+    _this.marketsUrl = 'https://bittrex.com/api/v1.1/public/getmarkets';
     _this.client;
     console.log('Instantiating Bittrex exchange!');
     return _this;
   }
 
   _createClass(Bittrex, [{
+    key: 'getMarket',
+    value: function getMarket() {
+      var markets, parsedMarkets;
+      return regeneratorRuntime.async(function getMarket$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              _context.prev = 0;
+              _context.next = 3;
+              return regeneratorRuntime.awrap(this.get(this.marketsUrl));
+
+            case 3:
+              markets = _context.sent;
+              parsedMarkets = this.parseMarkets(markets.result);
+              return _context.abrupt('return', Promise.resolve(parsedMarkets));
+
+            case 8:
+              _context.prev = 8;
+              _context.t0 = _context['catch'](0);
+              return _context.abrupt('return', Promise.reject(_context.t0));
+
+            case 11:
+            case 'end':
+              return _context.stop();
+          }
+        }
+      }, null, this, [[0, 8]]);
+    }
+  }, {
+    key: 'parseMarkets',
+    value: function parseMarkets(raw) {
+      return raw.map(function (mkt) {
+        return {
+          market: mkt.MarketName,
+          logo: mkt.LogoUrl
+        };
+      });
+    }
+  }, {
+    key: 'stopOrderBook',
+    value: function stopOrderBook() {
+      if (this.client) {
+        console.log("Stopping bittrex ws");
+        this.client.end();
+      }
+    }
+  }, {
     key: 'initOrderBook',
-    value: function initOrderBook() {
+    value: function initOrderBook(market) {
       console.log("Bittrex init order book");
       this.client = new signalR.client('wss://beta.bittrex.com/signalr', ['c2']);
-
-      var market = 'BTC-ETH';
 
       var self = this;
       var boundParser = this.parseOrderDelta.bind(this);
@@ -72,6 +114,10 @@ var Bittrex = function (_Exchange) {
         console.log("Error: ", err);
       };
 
+      self.client.serviceHandlers.onclose = function (err) {
+        console.log("Bittrex Websocket close");
+      };
+
       self.client.serviceHandlers.messageReceived = function (message) {
         var data = jsonic(message.utf8Data);
         var json = void 0;
@@ -85,7 +131,7 @@ var Bittrex = function (_Exchange) {
               var _json = JSON.parse(inflated.toString('utf8'));
               boundParser('ORDER_BOOK_INIT', _json);
               // Start only after order book inits
-              boundInitExchangeDelta();
+              boundInitExchangeDelta(market);
             }
           });
         }
@@ -93,10 +139,8 @@ var Bittrex = function (_Exchange) {
     }
   }, {
     key: 'initExchangeDelta',
-    value: function initExchangeDelta() {
+    value: function initExchangeDelta(market) {
       console.log("Bittrex init order book");
-
-      var market = 'BTC-ETH';
 
       var self = this;
       var boundParser = this.parseOrderDelta.bind(this);

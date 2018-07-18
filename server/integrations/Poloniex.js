@@ -11,27 +11,50 @@ class Poloniex extends Exchange {
   constructor() {
     super();
     this.exchangeName = 'poloniex';
+    this.marketsUrl = 'https://poloniex.com/public?command=return24hVolume';
+    this.socket;
   }
 
-  parseOrder(rawOrder) {
-    const order = {};
-    return order;
+  async getMarket() {
+    try {
+      const markets = await this.get(this.marketsUrl);
+      const parsedMarkets = this.parseMarkets(markets);
+      return Promise.resolve(parsedMarkets);
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
 
-  initOrderBook() {
+  parseMarkets(raw) {
+    return Object.keys(raw).map(mkt => {
+      return {
+        market: mkt.replace('_', '-')
+      };
+    })
+  }
+
+  stopOrderBook() {
+    if (this.socket) {
+      console.log("Stopping Poloniex ws");
+      this.socket.close();
+    }
+  }
+
+  initOrderBook(market) {
+    const poloMarket = market.replace('-', '_');
     console.log("Poloniex init order book");
     const wsuri = "wss://api2.poloniex.com:443";
     const socket = new WebSocket(wsuri);
+    this.socket = socket;
     socket.onopen = session => {
       console.log('Opening connection');
-      let params = {command: 'subscribe', channel: 'BTC_ETH'};
+      let params = {command: 'subscribe', channel: poloMarket};
       socket.send(JSON.stringify(params));
     };
 
     socket.onerror = error => {
       console.log("Poloniex WS Error!");
       console.log("Error: ", error);
-      // Might do a retry here... seems to get 521s often
     }
 
     socket.onmessage = msg => {
@@ -40,8 +63,8 @@ class Poloniex extends Exchange {
       }
     }
 
-    socket.onclose = function () {
-      console.log("Websocket connection closed");
+    socket.onclose = () => {
+      console.log("Poloniex Websocket connection closed");
     };
   }
 

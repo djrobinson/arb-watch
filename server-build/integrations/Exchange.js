@@ -18,44 +18,9 @@ var emitter = new events.EventEmitter();
 var Exchange = function () {
   function Exchange() {
     _classCallCheck(this, Exchange);
-
-    console.log("Trying to start exchange");
-    this.exchangeName = '';
-    this.apiURlBase = '';
-    this.restEndpoints = {
-      getMarkets: ''
-    };
   }
 
   _createClass(Exchange, [{
-    key: 'getMarkets',
-    value: function getMarkets() {
-      var markets;
-      return regeneratorRuntime.async(function getMarkets$(_context) {
-        while (1) {
-          switch (_context.prev = _context.next) {
-            case 0:
-              _context.prev = 0;
-              _context.next = 3;
-              return regeneratorRuntime.awrap(this.get('https://bittrex.com/api/v1.1/public/getmarkets'));
-
-            case 3:
-              markets = _context.sent;
-              return _context.abrupt('return', Promise.resolve(markets));
-
-            case 7:
-              _context.prev = 7;
-              _context.t0 = _context['catch'](0);
-              return _context.abrupt('return', Promise.reject(_context.t0));
-
-            case 10:
-            case 'end':
-              return _context.stop();
-          }
-        }
-      }, null, this, [[0, 7]]);
-    }
-  }, {
     key: 'emitOrderBook',
     value: function emitOrderBook(order) {
       order['exchange'] = this.exchangeName;

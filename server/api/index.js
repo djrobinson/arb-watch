@@ -1,22 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const { Exchange } = require('../integrations/Exchange');
+const exchanges = require('../exchanges');
 const ExchangeAggregator = require('../integrations/ExchangeAggregator');
 const asyncMiddleware = require('../utils/asyncResolve');
 
-router.get('/getMarkets/:exchange', asyncMiddleware(async function(req, res, next) {
+router.get('/getMarkets', asyncMiddleware(async (req, res, next) => {
+  const exchangeStrings = Object.keys(exchanges);
   console.log("Trying home");
-  const exchange = new Exchange(req.params.exchange);
-  res.json(await exchange.getMarkets());
+
+  const promisedExchanges = exchangeStrings.map(async (exch) => {
+    const exchange = new exchanges[exch]();
+    return await exchange.getMarket();
+  })
+  Promise.all(promisedExchanges).then(markets => {
+    let market1 = markets.filter(mkt => mkt[0].hasOwnProperty('logo'))[0];
+    let market2 = markets.filter(mkt => !mkt[0].hasOwnProperty('logo'))[0];
+    console.log("Market 1 : ", market1);
+    const sharedMarkets = market1.filter(val1 => {
+      return market2.some(val2 => {
+        console.log("Shared check", val1, val2);
+        return val1.market === val2.market;
+      });
+    });
+    console.log("What is shared? ", sharedMarkets);
+    res.json(sharedMarkets);
+  })
 }));
-
-router.get('/test', function(req, res, next) {
-  console.log("Trying home");
-  const requestedExchanges = ['poloniex', 'bittrex'];
-  const exchangeAggregator = new ExchangeAggregator(requestedExchanges);
-  exchangeAggregator.subscribeToOrderBooks();
-  res.json({test: "test"});
-});
-
 
 module.exports = router;

@@ -27,33 +27,76 @@ var Poloniex = function (_Exchange) {
     var _this = _possibleConstructorReturn(this, (Poloniex.__proto__ || Object.getPrototypeOf(Poloniex)).call(this));
 
     _this.exchangeName = 'poloniex';
+    _this.marketsUrl = 'https://poloniex.com/public?command=return24hVolume';
+    _this.socket;
     return _this;
   }
 
   _createClass(Poloniex, [{
-    key: 'parseOrder',
-    value: function parseOrder(rawOrder) {
-      var order = {};
-      return order;
+    key: 'getMarket',
+    value: function getMarket() {
+      var markets, parsedMarkets;
+      return regeneratorRuntime.async(function getMarket$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              _context.prev = 0;
+              _context.next = 3;
+              return regeneratorRuntime.awrap(this.get(this.marketsUrl));
+
+            case 3:
+              markets = _context.sent;
+              parsedMarkets = this.parseMarkets(markets);
+              return _context.abrupt('return', Promise.resolve(parsedMarkets));
+
+            case 8:
+              _context.prev = 8;
+              _context.t0 = _context['catch'](0);
+              return _context.abrupt('return', Promise.reject(_context.t0));
+
+            case 11:
+            case 'end':
+              return _context.stop();
+          }
+        }
+      }, null, this, [[0, 8]]);
+    }
+  }, {
+    key: 'parseMarkets',
+    value: function parseMarkets(raw) {
+      return Object.keys(raw).map(function (mkt) {
+        return {
+          market: mkt.replace('_', '-')
+        };
+      });
+    }
+  }, {
+    key: 'stopOrderBook',
+    value: function stopOrderBook() {
+      if (this.socket) {
+        console.log("Stopping Poloniex ws");
+        this.socket.close();
+      }
     }
   }, {
     key: 'initOrderBook',
-    value: function initOrderBook() {
+    value: function initOrderBook(market) {
       var _this2 = this;
 
+      var poloMarket = market.replace('-', '_');
       console.log("Poloniex init order book");
       var wsuri = "wss://api2.poloniex.com:443";
       var socket = new WebSocket(wsuri);
+      this.socket = socket;
       socket.onopen = function (session) {
         console.log('Opening connection');
-        var params = { command: 'subscribe', channel: 'BTC_ETH' };
+        var params = { command: 'subscribe', channel: poloMarket };
         socket.send(JSON.stringify(params));
       };
 
       socket.onerror = function (error) {
         console.log("Poloniex WS Error!");
         console.log("Error: ", error);
-        // Might do a retry here... seems to get 521s often
       };
 
       socket.onmessage = function (msg) {
@@ -63,7 +106,7 @@ var Poloniex = function (_Exchange) {
       };
 
       socket.onclose = function () {
-        console.log("Websocket connection closed");
+        console.log("Poloniex Websocket connection closed");
       };
     }
   }, {

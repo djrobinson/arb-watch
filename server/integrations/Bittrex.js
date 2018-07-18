@@ -12,22 +12,43 @@ class Bittrex extends Exchange {
   constructor() {
     super();
     this.exchangeName = 'bittrex';
-    // Temp hardcode for testing
-    let market = 'BTC-ETH';
-    this.market = market;
-    this.emitter = new events.EventEmitter;
+    this.marketsUrl = 'https://bittrex.com/api/v1.1/public/getmarkets';
     this.client;
     console.log('Instantiating Bittrex exchange!');
   }
 
-  initOrderBook() {
+  async getMarket() {
+    try {
+      const markets = await this.get(this.marketsUrl);
+      const parsedMarkets = this.parseMarkets(markets.result);
+      return Promise.resolve(parsedMarkets);
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  }
+
+  parseMarkets(raw) {
+    return raw.map(mkt => {
+      return {
+        market: mkt.MarketName,
+        logo: mkt.LogoUrl
+      }
+    })
+  }
+
+  stopOrderBook() {
+    if (this.client) {
+      console.log("Stopping bittrex ws");
+      this.client.end();
+    }
+  }
+
+  initOrderBook(market) {
     console.log("Bittrex init order book");
     this.client = new signalR.client (
       'wss://beta.bittrex.com/signalr',
       ['c2']
     );
-
-    let market = 'BTC-ETH';
 
     const self = this;
     const boundParser = this.parseOrderDelta.bind(this);
@@ -53,6 +74,10 @@ class Bittrex extends Exchange {
       console.log("Error: ", err);
     }
 
+    self.client.serviceHandlers.onclose = (err) => {
+      console.log("Bittrex Websocket close");
+    }
+
     self.client.serviceHandlers.messageReceived = function (message) {
       let data = jsonic (message.utf8Data);
       let json;
@@ -66,17 +91,15 @@ class Bittrex extends Exchange {
             let json = JSON.parse (inflated.toString ('utf8'));
             boundParser('ORDER_BOOK_INIT', json);
             // Start only after order book inits
-            boundInitExchangeDelta();
+            boundInitExchangeDelta(market);
           }
         });
       }
     }
   }
 
-  initExchangeDelta() {
+  initExchangeDelta(market) {
     console.log("Bittrex init order book");
-
-    let market = 'BTC-ETH';
 
     const self = this;
     const boundParser = this.parseOrderDelta.bind(this);

@@ -11,23 +11,28 @@ class App extends Component {
   }
 
   componentDidMount() {
-    fetch('/api/getMarkets/bittrex')
+    fetch('/api/getMarkets')
       .then(res => res.json())
       .then(data => {
-        this.setState({ markets: data.result })
+        console.log("Markets data: ", data);
+        this.setState({ markets: data })
       });
 
-    const socket = openSocket('https://fierce-ridge-49535.herokuapp.com');
+    // const socket = openSocket('http://localhost:3001');
+    // // Bring this link out
+    // // const socket = openSocket('https://fierce-ridge-49535.herokuapp.com');
 
-    socket.on('test', (message) => {
-      let data = JSON.parse(message);
-      if (data.type === 'ORDER_BOOK_INIT') {
-        this.setState({
-          bids: data.orderBook.bids,
-          asks: data.orderBook.asks
-        })
-      }
-    });
+    // socket.emit('startMarket', { market: 'BTC-ZEC'});
+
+    // socket.on('test', (message) => {
+    //   let data = JSON.parse(message);
+    //   if (data.type === 'ORDER_BOOK_INIT') {
+    //     this.setState({
+    //       bids: data.orderBook.bids,
+    //       asks: data.orderBook.asks
+    //     })
+    //   }
+    // });
   }
 
 
@@ -81,7 +86,7 @@ class App extends Component {
           <Col md={6}>
             <h2>Bids</h2>
 
-            {
+            { (Object.keys(this.state.bids).length) &&
               Object.keys(this.state.bids).map((bid, i) => {
                 return (
                   <div key={i}>
@@ -97,6 +102,7 @@ class App extends Component {
           <Col md={6}>
             <h2>Asks</h2>
             {
+              (Object.keys(this.state.asks).length) &&
               Object.keys(this.state.asks).map((ask, i) => {
                 return (
                   <div key={i}>
@@ -110,7 +116,7 @@ class App extends Component {
           </Col>
         </Row>
         {
-          this.state.markets.map((market, i) => <ul key={i} ><img src={market.LogoUrl} height="25px" width="25px" />{market.MarketCurrency}/{market.BaseCurrency}</ul>)
+          this.state.markets.map((market, i) => <ul key={i} ><img src={market.logo} height="25px" width="25px" />{market.market}</ul>)
         }
 
       </div>

@@ -10,23 +10,6 @@ const events = require('events');
 const emitter = new events.EventEmitter;
 
 class Exchange {
-  constructor() {
-    console.log("Trying to start exchange");
-    this.exchangeName = '';
-    this.apiURlBase = '';
-    this.restEndpoints = {
-      getMarkets: ''
-    }
-  }
-
-  async getMarkets() {
-    try {
-      var markets = await this.get('https://bittrex.com/api/v1.1/public/getmarkets');
-      return Promise.resolve(markets);
-    } catch (e) {
-      return Promise.reject(e);
-    }
-  }
 
   emitOrderBook(order) {
       order['exchange'] = this.exchangeName;
@@ -49,6 +32,7 @@ class Exchange {
     }
     return response;
   }
+
 }
 
 module.exports = { Exchange, emitter };
