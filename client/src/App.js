@@ -20,7 +20,8 @@ class App extends Component {
   }
 
   selectMarket(mkt) {
-
+    console.log("Selecting market", mkt);
+    this.setState({ selectedMarket: mkt })
   }
 
   render() {
@@ -36,16 +37,22 @@ class App extends Component {
             {
               this.state.markets.map((market, i) => {
                 return (
-                  <Col md={4} className="coin-tile" key={i} >
-                    <h5>{market.market}</h5>
-                    <img src={market.logo ? market.logo : ''} alt="" height="75px" width="75px" />
+                  <Col md={4} className="coin-col" key={i} >
+                    <div className="coin-tile" onClick={() => {this.selectMarket(market.market)}}>
+                      <h5>{market.market}</h5>
+                      <img src={market.logo ? market.logo : ''} alt="" height="75px" width="75px" />
+                    </div>
                   </Col>
                 );
               })
             }
           </Col>
           <Col md={8}>
-
+            {
+              (this.state.selectedMarket) && (
+                <OrderBook market={this.state.selectedMarket} />
+              )
+            }
           </Col>
         </Row>
       </div>

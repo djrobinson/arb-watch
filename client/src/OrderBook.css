@@ -1,0 +1,54 @@
+.order-row {
+  height: 36px;
+  padding-top: 4px;
+  text-align: left;
+  border-top: solid 1px black;
+}
+
+.title-row {
+  font-size: 24px;
+}
+
+.order-row * {
+  font-size: 18px;
+}
+
+
+
+.poloniex .exchange-name {
+  color: turquoise;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.bittrex .exchange-name {
+  color: maroon;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ask-row.poloniex {
+  box-sizing: border-box;
+  border-left: solid 20px turquoise;
+  border-right: solid 20px turquoise;
+}
+
+.ask-row.bittrex {
+  box-sizing: border-box;
+  border-left: solid 20px maroon;
+  border-right: solid 20px maroon;
+}
+
+.bid-row.poloniex {
+  box-sizing: border-box;
+  border-left: solid 20px turquoise;
+  border-right: solid 20px turquoise;
+
+
+}
+
+.bid-row.bittrex {
+  box-sizing: border-box;
+  border-left: solid 20px maroon;
+  border-right: solid 20px maroon;
+}

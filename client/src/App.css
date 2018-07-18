@@ -8,17 +8,22 @@
 }
 
 .header {
+  text-align: center;
   position: fixed;
   width: 100%;
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
+  background-color: white;
+  border-bottom: solid 5px #B0D0D3;
+  height: 100px;
+  padding-left: 20px;
+  color: black;
   z-index: 5;
 }
 
 .header-row {
-  height: 150px;
+  height: 100px;
+  padding: 0;
+  margin: 0;
+  margin-bottom: 15px;
 }
 
 @keyframes App-logo-spin {
@@ -26,18 +31,26 @@
   to { transform: rotate(360deg); }
 }
 
-.coin-tile {
+.coin-col {
+  margin-top: 15px;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px;
   height: 150px;
-  border: solid 2px gray;
+
+}
+.coin-tile {
+  color: black;
+  background-color: white;
+  padding: 5% 25%;
+  border: solid 2px #B0D0D3;
+  border-radius: 40px;
 }
 
 .coin-tile:hover {
-  background: gray;
+  color: black;
+  border: solid 5px #B0D0D3;
 }
 
 .coin-tiles {

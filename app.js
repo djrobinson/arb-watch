@@ -23,13 +23,11 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 io.on('connection', function(client) {
   const exchanges = ['bittrex', 'poloniex'];
   const exchangeAggregator = new ExchangeAggregator(exchanges);
-  console.log("Inside of ECHO");
   const aggregatorCallback = function(msg) {
-    client.emit('test', msg);
+    client.emit('orderbook', msg);
   };
 
   client.on('startMarket', req => {
-    console.log("What is market", req);
     exchangeAggregator.removeAllSubscriptions();
     exchangeAggregator.subscribeToOrderBooks(req.market, aggregatorCallback);
   })
@@ -51,6 +49,7 @@ io.on('connection', function(client) {
 
   client.on('end', function() {
     console.log("Websocket closing");
+    exchangeAggregator.removeAllSubscriptions();
     client.disconnect(true);
   });
 });
