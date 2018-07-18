@@ -35,7 +35,7 @@ class OrderBook extends Component {
     }
     // this.socket = openSocket('http://localhost:3001');
     // Bring this link out
-    const socket = openSocket();
+    this.socket = openSocket();
 
     this.socket.emit('startMarket', { market });
 
