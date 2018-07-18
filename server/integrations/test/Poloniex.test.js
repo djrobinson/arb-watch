@@ -24,6 +24,7 @@ describe('Poloniex integrations test', () => {
   };
   const expectedInitMarket = {
     type: 'ORDER_BOOK_INIT',
+    exchange: 'poloniex',
     bids: {
       'poloniex0.0002': {
         rate: 0.0002,

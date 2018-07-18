@@ -26,6 +26,7 @@ describe('Bittrex integration tests', () => {
   };
   const expectedInitMarket = {
     type: 'ORDER_BOOK_INIT',
+    exchange: 'bittrex',
     bids: {
       'bittrex0.0002': {
         rate: 0.0002,
