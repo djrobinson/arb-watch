@@ -33,9 +33,9 @@ class OrderBook extends Component {
       console.log("Disconnecting socket first");
       this.socket.emit('end');
     }
-    this.socket = openSocket('http://localhost:3001');
+    // this.socket = openSocket('http://localhost:3001');
     // Bring this link out
-    // const socket = openSocket('https://fierce-ridge-49535.herokuapp.com');
+    const socket = openSocket('https://fierce-ridge-49535.herokuapp.com');
 
     this.socket.emit('startMarket', { market });
 
