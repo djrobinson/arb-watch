@@ -8,6 +8,7 @@
   "scripts": {
     "compile": "babel server/ -d server-build/ && cp -r server/views server-build/",
     "clean": "rm -rf server-build && mkdir server-build",
+    "test": "mocha server --recursive",
     "dev": "npm run clean && npm run compile && PORT=3001 node bin/www",
     "start": "node bin/www",
     "heroku-postbuild": "cd client && npm install && npm run build"
@@ -27,6 +28,7 @@
     "isomorphic-fetch": "^2.2.1",
     "jade": "~1.11.0",
     "jsonic": "^0.3.0",
+    "mocha": "^5.2.0",
     "moment": "^2.22.2",
     "morgan": "~1.9.0",
     "request": "^2.65.0",

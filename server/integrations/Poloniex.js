@@ -12,6 +12,7 @@ class Poloniex extends Exchange {
     super();
     this.exchangeName = 'poloniex';
     this.marketsUrl = 'https://poloniex.com/public?command=return24hVolume';
+    this.wsuri = 'wss://api2.poloniex.com:443';
     this.socket;
   }
 
@@ -42,19 +43,16 @@ class Poloniex extends Exchange {
 
   initOrderBook(market) {
     const poloMarket = market.replace('-', '_');
-    console.log("Poloniex init order book");
-    const wsuri = "wss://api2.poloniex.com:443";
+    const wsuri = this.wsuri;
     const socket = new WebSocket(wsuri);
     this.socket = socket;
     socket.onopen = session => {
-      console.log('Opening connection');
       let params = {command: 'subscribe', channel: poloMarket};
       socket.send(JSON.stringify(params));
     };
 
     socket.onerror = error => {
-      console.log("Poloniex WS Error!");
-      console.log("Error: ", error);
+      console.log("Poloniex WS Error!", error);
     }
 
     socket.onmessage = msg => {
@@ -77,7 +75,7 @@ class Poloniex extends Exchange {
         type: 'ORDER_BOOK_INIT'
       }
       const stringBids = data[2][0][1].orderBook[1];
-      const bidRates = Object.keys(stringBids).slice(0, 50);
+      const bidRates = Object.keys(stringBids).slice(0, this.orderBookDepth);
       const bids = bidRates.reduce((aggregator, bid) => {
         let order = {
           exchange: this.exchangeName,
@@ -89,7 +87,7 @@ class Poloniex extends Exchange {
       }, {});
 
       const stringAsks = data[2][0][1].orderBook[0];
-      const askRates = Object.keys(stringAsks).slice(0, 50);
+      const askRates = Object.keys(stringAsks).slice(0, this.orderBookDepth);
       const asks = askRates.reduce((aggregator, ask) => {
         let order = {
           exchange: this.exchangeName,
@@ -100,7 +98,6 @@ class Poloniex extends Exchange {
         return aggregator;
       }, {});
 
-      // Take first 500 to match bittrex. Would be in config if more exchanges
       initOrderBook.asks = asks;
       initOrderBook.bids = bids;
       this.emitOrderBook(initOrderBook);

@@ -65,16 +65,14 @@ class Bittrex extends Exchange {
     }
 
     self.client.serviceHandlers.connectFailed = (err) => {
-      console.log("Bittrex WS Error");
-      console.log("Error: ", err);
+      console.log("Bittrex Connect Failed", err);
     }
 
     self.client.serviceHandlers.onerror = (err) => {
-      console.log("Bittrex WS Error");
-      console.log("Error: ", err);
+      console.log("Bittrex WS Error", err);
     }
 
-    self.client.serviceHandlers.onclose = (err) => {
+    self.client.serviceHandlers.onclose = () => {
       console.log("Bittrex Websocket close");
     }
 
@@ -144,10 +142,10 @@ class Bittrex extends Exchange {
     if (type === 'ORDER_BOOK_INIT' && orderDelta['Z'] && orderDelta['S']) {
       const sortedBids = orderDelta['Z'].sort((a, b) => {
         return b.R - a.R;
-      }).slice(0, 50);
+      }).slice(0, this.orderBookDepth);
       const sortedAsks = orderDelta['S'].sort((a, b) => {
         return a.R - b.R;
-      }).slice(0, 50);
+      }).slice(0, this.orderBookDepth);
       const bids = sortedBids.reduce((aggregator, bid) => {
           let order = {
             exchange: this.exchangeName,

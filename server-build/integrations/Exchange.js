@@ -18,6 +18,8 @@ var emitter = new events.EventEmitter();
 var Exchange = function () {
   function Exchange() {
     _classCallCheck(this, Exchange);
+
+    this.orderBookDepth = 50;
   }
 
   _createClass(Exchange, [{
@@ -35,6 +37,8 @@ var Exchange = function () {
     value: function get(url) {
       return fetch(url).then(this.handleErrors).then(function (response) {
         return response.json();
+      }).catch(function (err) {
+        return console.log(err);
       });
     }
   }, {

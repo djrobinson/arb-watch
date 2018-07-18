@@ -17,6 +17,7 @@ class OrderBook extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.market !== this.props.market) {
+      this.setState({ bids: {}, asks: {}})
       this.startSocket();
     }
   }
@@ -33,8 +34,7 @@ class OrderBook extends Component {
       console.log("Disconnecting socket first");
       this.socket.emit('end');
     }
-    // this.socket = openSocket('http://localhost:3001');
-    // Bring this link out
+
     this.socket = openSocket();
 
     this.socket.emit('startMarket', { market });
@@ -84,13 +84,9 @@ class OrderBook extends Component {
         };
         book[event.rateString] = order;
         this.setState({ asks: book })
-
       }
     }
-
-
   }
-
 
   render() {
     return (

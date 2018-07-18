@@ -28,6 +28,7 @@ var Poloniex = function (_Exchange) {
 
     _this.exchangeName = 'poloniex';
     _this.marketsUrl = 'https://poloniex.com/public?command=return24hVolume';
+    _this.wsuri = 'wss://api2.poloniex.com:443';
     _this.socket;
     return _this;
   }
@@ -84,19 +85,16 @@ var Poloniex = function (_Exchange) {
       var _this2 = this;
 
       var poloMarket = market.replace('-', '_');
-      console.log("Poloniex init order book");
-      var wsuri = "wss://api2.poloniex.com:443";
+      var wsuri = this.wsuri;
       var socket = new WebSocket(wsuri);
       this.socket = socket;
       socket.onopen = function (session) {
-        console.log('Opening connection');
         var params = { command: 'subscribe', channel: poloMarket };
         socket.send(JSON.stringify(params));
       };
 
       socket.onerror = function (error) {
-        console.log("Poloniex WS Error!");
-        console.log("Error: ", error);
+        console.log("Poloniex WS Error!", error);
       };
 
       socket.onmessage = function (msg) {
@@ -122,7 +120,7 @@ var Poloniex = function (_Exchange) {
           type: 'ORDER_BOOK_INIT'
         };
         var stringBids = data[2][0][1].orderBook[1];
-        var bidRates = Object.keys(stringBids).slice(0, 50);
+        var bidRates = Object.keys(stringBids).slice(0, this.orderBookDepth);
         var bids = bidRates.reduce(function (aggregator, bid) {
           var order = {
             exchange: _this3.exchangeName,
@@ -134,7 +132,7 @@ var Poloniex = function (_Exchange) {
         }, {});
 
         var stringAsks = data[2][0][1].orderBook[0];
-        var askRates = Object.keys(stringAsks).slice(0, 50);
+        var askRates = Object.keys(stringAsks).slice(0, this.orderBookDepth);
         var asks = askRates.reduce(function (aggregator, ask) {
           var order = {
             exchange: _this3.exchangeName,

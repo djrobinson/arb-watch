@@ -14,7 +14,6 @@ class App extends Component {
     fetch('/api/getMarkets')
       .then(res => res.json())
       .then(data => {
-        console.log("Markets data: ", data);
         this.setState({ markets: data })
       });
   }

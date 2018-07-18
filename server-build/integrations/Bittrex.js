@@ -105,16 +105,14 @@ var Bittrex = function (_Exchange) {
       };
 
       self.client.serviceHandlers.connectFailed = function (err) {
-        console.log("Bittrex WS Error");
-        console.log("Error: ", err);
+        console.log("Bittrex Connect Failed", err);
       };
 
       self.client.serviceHandlers.onerror = function (err) {
-        console.log("Bittrex WS Error");
-        console.log("Error: ", err);
+        console.log("Bittrex WS Error", err);
       };
 
-      self.client.serviceHandlers.onclose = function (err) {
+      self.client.serviceHandlers.onclose = function () {
         console.log("Bittrex Websocket close");
       };
 
@@ -188,10 +186,10 @@ var Bittrex = function (_Exchange) {
       if (type === 'ORDER_BOOK_INIT' && orderDelta['Z'] && orderDelta['S']) {
         var sortedBids = orderDelta['Z'].sort(function (a, b) {
           return b.R - a.R;
-        }).slice(0, 50);
+        }).slice(0, this.orderBookDepth);
         var sortedAsks = orderDelta['S'].sort(function (a, b) {
           return a.R - b.R;
-        }).slice(0, 50);
+        }).slice(0, this.orderBookDepth);
         var bids = sortedBids.reduce(function (aggregator, bid) {
           var order = {
             exchange: _this2.exchangeName,

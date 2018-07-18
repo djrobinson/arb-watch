@@ -11,6 +11,10 @@ const emitter = new events.EventEmitter;
 
 class Exchange {
 
+  constructor() {
+    this.orderBookDepth = 50;
+  }
+
   emitOrderBook(order) {
       order['exchange'] = this.exchangeName;
       if (order.type === 'ORDER_BOOK_INIT') {
@@ -24,6 +28,7 @@ class Exchange {
     return fetch(url)
       .then(this.handleErrors)
       .then(response => response.json())
+      .catch(err => console.log(err))
   }
 
   handleErrors(response) {
