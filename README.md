@@ -2,15 +2,15 @@
 
 *A realtime multiexchange orderbook analysis tool for finding cross-exchange arbitrage opportunities*
 
-## Setup
+### Setup
 
-**Server Instructions**: Transpiles code to `server-build` folder and runs the app on http://localhost:3001.
+**Server Instructions**: Transpiles code to `server-build` folder and runs the app on `http://localhost:3001`.
 ```
 cd arb-watch
 npm i
 npm run dev
 ```
-**Client Instructions**: Built using `create-react-app`, runs on http://localhost3001. In a new terminal, run:
+**Client Instructions**: Built using `create-react-app`, runs on `http://localhost3000`. In a new terminal, run:
 ```
 cd arb-watch/client
 npm i
@@ -22,7 +22,7 @@ npm start
 npm test
 ```
 
-## Adding a New Integration:
+### Adding a New Integration:
 
 To add a new integration, you need to extend the `Exchange` class found in `arb-watch/server/base/Exchange` and implement a few common methods that all descendants of Exchange require:
 
@@ -68,6 +68,7 @@ class NewIntegration extends Exchange {
 ```
 
 **Event Types for Exchange.emitOrderBook**: Below is the required structure of events to be processed by the ExchangeAggregator and sent to the front end via socket.io. Check out the unit tests to see examples of how they are processed:
+
 ```
   // Initial Orderbook state (might need to get this from REST on a few exchanges)
   {
