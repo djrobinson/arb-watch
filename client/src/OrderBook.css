@@ -1,19 +1,26 @@
 .order-row {
-  height: 36px;
-  padding-top: 4px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   text-align: left;
-  border-top: solid 1px black;
+  border-top: solid 1px gray;
+}
+
+.order-book {
+  padding: 40px;
 }
 
 .title-row {
   font-size: 24px;
+  border-top: solid 1px gray;
 }
 
 .order-row * {
-  font-size: 18px;
+  font-size: 16px;
 }
 
-
+.overlap {
+  background-color: rgba(0, 255, 0, 0.3);
+}
 
 .poloniex .exchange-name {
   color: turquoise;
@@ -30,25 +37,19 @@
 .ask-row.poloniex {
   box-sizing: border-box;
   border-left: solid 20px turquoise;
-  border-right: solid 20px turquoise;
 }
 
 .ask-row.bittrex {
   box-sizing: border-box;
   border-left: solid 20px maroon;
-  border-right: solid 20px maroon;
 }
 
 .bid-row.poloniex {
   box-sizing: border-box;
-  border-left: solid 20px turquoise;
   border-right: solid 20px turquoise;
-
-
 }
 
 .bid-row.bittrex {
   box-sizing: border-box;
-  border-left: solid 20px maroon;
   border-right: solid 20px maroon;
 }

@@ -13,6 +13,8 @@ class ExchangeAggregator {
     console.log("What are exchanges: ", exchanges);
     this.subscriptions = {};
     this.exchanges = [];
+    this.highestBid;
+    this.lowestAsk;
     this.mergedOrderBook = {
       asks: null,
       bids: null
@@ -42,6 +44,8 @@ class ExchangeAggregator {
     setInterval(() => {
       const orderBookEvent = {
         type: 'ORDER_BOOK_INIT',
+        highestBid: this.highestBid,
+        lowestAsk: this.lowestAsk,
         orderBook: this.mergedOrderBook
       }
       boundCallback(JSON.stringify(orderBookEvent));
@@ -56,35 +60,42 @@ class ExchangeAggregator {
     if (this.mergedOrderBook.bids) {
       const allBids = {...event.bids, ...this.mergedOrderBook.bids};
       const allBidRates = Object.keys(allBids);
-      const orderBids = allBidRates.sort((a, b) => {
+      const sortedBids = allBidRates.sort((a, b) => {
         return allBids[b].rate - allBids[a].rate;
       });
+
+      this.highestBid = allBids[sortedBids[0]].rate;
       const bidBook = {};
-      orderBids.forEach(bid => {
+      sortedBids.forEach(bid => {
         bidBook[bid] = allBids[bid];
       })
       this.mergedOrderBook.bids = bidBook;
     } else {
+      this.highestBid = event.bids[Object.keys(event.bids)[0]].rate;
       this.mergedOrderBook.bids = event.bids;
     };
 
     if (this.mergedOrderBook.asks) {
       const allAsks = {...event.asks, ...this.mergedOrderBook.asks};
       const allAskRates = Object.keys(allAsks);
-      const orderAsks = allAskRates.sort((a, b) => {
+      const sortedAsks = allAskRates.sort((a, b) => {
         return allAsks[a].rate - allAsks[b].rate;
       });
+      this.lowestAsk = allAsks[sortedAsks[0]].rate;
       const askBook = {};
-      orderAsks.forEach(ask => {
+      sortedAsks.forEach(ask => {
         askBook[ask] = allAsks[ask];
       })
       this.mergedOrderBook.asks = askBook;
     } else {
+      this.lowestAsk = event.asks[Object.keys(event.asks)[0]].rate
       this.mergedOrderBook.asks = event.asks;
     };
 
     const orderBookEvent = {
       type: 'ORDER_BOOK_INIT',
+      highestBid: this.highestBid,
+      lowestAsk: this.lowestAsk,
       orderBook: this.mergedOrderBook
     }
 
@@ -106,6 +117,7 @@ class ExchangeAggregator {
     }
     if (book) {
       if (!event.amount) {
+
         if (book[event.rateString]) {
           delete book[event.rateString];
         }
@@ -133,6 +145,12 @@ class ExchangeAggregator {
             return book[a].rate - book[b].rate;
           }
         });
+        if (type === 'bids') {
+          this.highestBid = book[sortedBook[0]].rate;
+        }
+        if (type === 'asks') {
+          this.lowestAsk = book[sortedBook[0]].rate;
+        }
         const newBook = {};
         sortedBook.forEach(b => {
           newBook[b] = book[b];

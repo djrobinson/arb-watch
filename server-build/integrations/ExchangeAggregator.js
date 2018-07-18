@@ -25,6 +25,8 @@ var ExchangeAggregator = function () {
     console.log("What are exchanges: ", exchanges);
     this.subscriptions = {};
     this.exchanges = [];
+    this.highestBid;
+    this.lowestAsk;
     this.mergedOrderBook = {
       asks: null,
       bids: null
@@ -63,6 +65,8 @@ var ExchangeAggregator = function () {
       setInterval(function () {
         var orderBookEvent = {
           type: 'ORDER_BOOK_INIT',
+          highestBid: _this2.highestBid,
+          lowestAsk: _this2.lowestAsk,
           orderBook: _this2.mergedOrderBook
         };
         boundCallback(JSON.stringify(orderBookEvent));
@@ -83,35 +87,42 @@ var ExchangeAggregator = function () {
       if (this.mergedOrderBook.bids) {
         var allBids = _extends({}, event.bids, this.mergedOrderBook.bids);
         var allBidRates = Object.keys(allBids);
-        var orderBids = allBidRates.sort(function (a, b) {
+        var sortedBids = allBidRates.sort(function (a, b) {
           return allBids[b].rate - allBids[a].rate;
         });
+
+        this.highestBid = allBids[sortedBids[0]].rate;
         var bidBook = {};
-        orderBids.forEach(function (bid) {
+        sortedBids.forEach(function (bid) {
           bidBook[bid] = allBids[bid];
         });
         this.mergedOrderBook.bids = bidBook;
       } else {
+        this.highestBid = event.bids[Object.keys(event.bids)[0]].rate;
         this.mergedOrderBook.bids = event.bids;
       };
 
       if (this.mergedOrderBook.asks) {
         var allAsks = _extends({}, event.asks, this.mergedOrderBook.asks);
         var allAskRates = Object.keys(allAsks);
-        var orderAsks = allAskRates.sort(function (a, b) {
+        var sortedAsks = allAskRates.sort(function (a, b) {
           return allAsks[a].rate - allAsks[b].rate;
         });
+        this.lowestAsk = allAsks[sortedAsks[0]].rate;
         var askBook = {};
-        orderAsks.forEach(function (ask) {
+        sortedAsks.forEach(function (ask) {
           askBook[ask] = allAsks[ask];
         });
         this.mergedOrderBook.asks = askBook;
       } else {
+        this.lowestAsk = event.asks[Object.keys(event.asks)[0]].rate;
         this.mergedOrderBook.asks = event.asks;
       };
 
       var orderBookEvent = {
         type: 'ORDER_BOOK_INIT',
+        highestBid: this.highestBid,
+        lowestAsk: this.lowestAsk,
         orderBook: this.mergedOrderBook
       };
 
@@ -136,6 +147,7 @@ var ExchangeAggregator = function () {
       }
       if (book) {
         if (!event.amount) {
+
           if (book[event.rateString]) {
             delete book[event.rateString];
           }
@@ -163,6 +175,12 @@ var ExchangeAggregator = function () {
               return book[a].rate - book[b].rate;
             }
           });
+          if (type === 'bids') {
+            this.highestBid = book[sortedBook[0]].rate;
+          }
+          if (type === 'asks') {
+            this.lowestAsk = book[sortedBook[0]].rate;
+          }
           var newBook = {};
           sortedBook.forEach(function (b) {
             newBook[b] = book[b];

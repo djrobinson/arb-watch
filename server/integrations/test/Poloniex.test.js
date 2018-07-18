@@ -43,12 +43,12 @@ describe('Poloniex integrations test', () => {
   it('Parses initial orderbook into correct structure', () => {
     let parsed;
     exchange.emitOrderBook = (res) => {
-      console.log("Override emit orderbook");
+      console.log("Calling mocked emit orderbook");
       parsed = res;
     };
     exchange.parseOrderDelta(initBook);
     assert.deepEqual(parsed, expectedInitMarket);
-  })
+  });
 
   it('Parse bids into correct structure', () => {
     let parsed;

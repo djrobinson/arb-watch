@@ -143,7 +143,6 @@ var Poloniex = function (_Exchange) {
           return aggregator;
         }, {});
 
-        // Take first 500 to match bittrex. Would be in config if more exchanges
         initOrderBook.asks = asks;
         initOrderBook.bids = bids;
         this.emitOrderBook(initOrderBook);
