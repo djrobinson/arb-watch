@@ -4,7 +4,7 @@ AND CONTIANS EXCHANGE SPECIFIC FORMATTERS
 */
 const Moment = require('moment');
 const WebSocket = require('ws');
-const { Exchange } = require('./Exchange');
+const { Exchange } = require('../base/Exchange');
 
 class Poloniex extends Exchange {
 
@@ -53,6 +53,10 @@ class Poloniex extends Exchange {
 
     socket.onerror = error => {
       console.log("Poloniex WS Error!", error);
+      this.emitOrderBook({
+        type: 'WS_ERROR',
+        exchange: 'poloniex'
+      });
     }
 
     socket.onmessage = msg => {
@@ -72,7 +76,8 @@ class Poloniex extends Exchange {
     if (data && data[2] && data[2][0] && data[2][0][1] && data[2][0][1].hasOwnProperty('orderBook')) {
       // Initial Response:
       let initOrderBook = {
-        type: 'ORDER_BOOK_INIT'
+        type: 'ORDER_BOOK_INIT',
+        exchange: this.exchangeName
       }
       const stringBids = data[2][0][1].orderBook[1];
       const bidRates = Object.keys(stringBids).slice(0, this.orderBookDepth);

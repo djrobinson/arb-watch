@@ -17,7 +17,7 @@ var jsonic = require('jsonic');
 var zlib = require('zlib');
 var events = require('events');
 
-var _require = require('./Exchange'),
+var _require = require('../base/Exchange'),
     Exchange = _require.Exchange;
 
 var Bittrex = function (_Exchange) {
@@ -85,6 +85,8 @@ var Bittrex = function (_Exchange) {
   }, {
     key: 'initOrderBook',
     value: function initOrderBook(market) {
+      var _this2 = this;
+
       console.log("Bittrex init order book");
       this.client = new signalR.client('wss://beta.bittrex.com/signalr', ['c2']);
 
@@ -110,6 +112,10 @@ var Bittrex = function (_Exchange) {
 
       self.client.serviceHandlers.onerror = function (err) {
         console.log("Bittrex WS Error", err);
+        _this2.emitOrderBook({
+          type: 'WS_ERROR',
+          exchange: 'bittrex'
+        });
       };
 
       self.client.serviceHandlers.onclose = function () {
@@ -181,7 +187,7 @@ var Bittrex = function (_Exchange) {
   }, {
     key: 'parseOrderDelta',
     value: function parseOrderDelta(type, orderDelta) {
-      var _this2 = this;
+      var _this3 = this;
 
       if (type === 'ORDER_BOOK_INIT' && orderDelta['Z'] && orderDelta['S']) {
         var sortedBids = orderDelta['Z'].sort(function (a, b) {
@@ -192,24 +198,25 @@ var Bittrex = function (_Exchange) {
         }).slice(0, this.orderBookDepth);
         var bids = sortedBids.reduce(function (aggregator, bid) {
           var order = {
-            exchange: _this2.exchangeName,
+            exchange: _this3.exchangeName,
             rate: bid.R,
             amount: parseFloat(bid.Q)
           };
-          aggregator[_this2.exchangeName + bid.R.toString()] = order;
+          aggregator[_this3.exchangeName + bid.R.toString()] = order;
           return aggregator;
         }, {});
         var asks = sortedAsks.reduce(function (aggregator, ask) {
           var order = {
-            exchange: _this2.exchangeName,
+            exchange: _this3.exchangeName,
             rate: ask.R,
             amount: parseFloat(ask.Q)
           };
-          aggregator[_this2.exchangeName + ask.R.toString()] = order;
+          aggregator[_this3.exchangeName + ask.R.toString()] = order;
           return aggregator;
         }, {});
         var initOrderBook = {
           type: type,
+          exchange: this.exchangeName,
           bids: bids,
           asks: asks
         };
@@ -219,20 +226,20 @@ var Bittrex = function (_Exchange) {
         orderDelta['Z'].forEach(function (change) {
           var orderDelta = {
             type: 'BID_UPDATE',
-            rateString: _this2.exchangeName + change.R.toString(),
+            rateString: _this3.exchangeName + change.R.toString(),
             rate: change.R,
             amount: parseFloat(change.Q)
           };
-          _this2.emitOrderBook(orderDelta);
+          _this3.emitOrderBook(orderDelta);
         });
         orderDelta['S'].forEach(function (change) {
           var orderDelta = {
             type: 'ASK_UPDATE',
-            rateString: _this2.exchangeName + change.R.toString(),
+            rateString: _this3.exchangeName + change.R.toString(),
             rate: change.R,
             amount: parseFloat(change.Q)
           };
-          _this2.emitOrderBook(orderDelta);
+          _this3.emitOrderBook(orderDelta);
         });
       }
     }

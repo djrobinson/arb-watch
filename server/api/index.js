@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { Exchange } = require('../integrations/Exchange');
 const exchanges = require('../exchanges');
-const ExchangeAggregator = require('../integrations/ExchangeAggregator');
+const ExchangeAggregator = require('../base/ExchangeAggregator');
 const asyncMiddleware = require('../utils/asyncResolve');
 
 router.get('/getMarkets', asyncMiddleware(async (req, res, next) => {
@@ -20,7 +19,8 @@ router.get('/getMarkets', asyncMiddleware(async (req, res, next) => {
 
     const sharedMarkets = market1.filter(val1 => {
       return market2.some(val2 => {
-        return val1.market === val2.market;
+        // Taking doge out for now
+        return (val1.market === val2.market && val1.market !== 'BTC-DOGE');
       });
     });
 

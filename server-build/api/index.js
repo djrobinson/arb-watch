@@ -2,12 +2,8 @@
 
 var express = require('express');
 var router = express.Router();
-
-var _require = require('../integrations/Exchange'),
-    Exchange = _require.Exchange;
-
 var exchanges = require('../exchanges');
-var ExchangeAggregator = require('../integrations/ExchangeAggregator');
+var ExchangeAggregator = require('../base/ExchangeAggregator');
 var asyncMiddleware = require('../utils/asyncResolve');
 
 router.get('/getMarkets', asyncMiddleware(function _callee2(req, res, next) {
@@ -52,7 +48,8 @@ router.get('/getMarkets', asyncMiddleware(function _callee2(req, res, next) {
 
             var sharedMarkets = market1.filter(function (val1) {
               return market2.some(function (val2) {
-                return val1.market === val2.market;
+                // Taking doge out for now
+                return val1.market === val2.market && val1.market !== 'BTC-DOGE';
               });
             });
 

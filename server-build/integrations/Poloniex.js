@@ -15,7 +15,7 @@ AND CONTIANS EXCHANGE SPECIFIC FORMATTERS
 var Moment = require('moment');
 var WebSocket = require('ws');
 
-var _require = require('./Exchange'),
+var _require = require('../base/Exchange'),
     Exchange = _require.Exchange;
 
 var Poloniex = function (_Exchange) {
@@ -95,6 +95,10 @@ var Poloniex = function (_Exchange) {
 
       socket.onerror = function (error) {
         console.log("Poloniex WS Error!", error);
+        _this2.emitOrderBook({
+          type: 'WS_ERROR',
+          exchange: 'poloniex'
+        });
       };
 
       socket.onmessage = function (msg) {
@@ -117,7 +121,8 @@ var Poloniex = function (_Exchange) {
       if (data && data[2] && data[2][0] && data[2][0][1] && data[2][0][1].hasOwnProperty('orderBook')) {
         // Initial Response:
         var initOrderBook = {
-          type: 'ORDER_BOOK_INIT'
+          type: 'ORDER_BOOK_INIT',
+          exchange: this.exchangeName
         };
         var stringBids = data[2][0][1].orderBook[1];
         var bidRates = Object.keys(stringBids).slice(0, this.orderBookDepth);

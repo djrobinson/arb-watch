@@ -12,16 +12,29 @@
 }
 
 .header {
-  text-align: left;
+  text-align: center;
   position: fixed;
   width: 100%;
   background-color: white;
   border-bottom: solid 5px #B0D0D3;
   height: 100px;
   padding-left: 40px;
-  padding-top: 10px;
   color: black;
   z-index: 5;
+}
+
+.welcome {
+  margin-top: 300px;
+
+}
+
+.main-panel {
+  text-align: center;
+}
+
+.header h1 {
+  font-weight: 700;
+  font-size: 50px;
 }
 
 .header-row {

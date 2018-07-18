@@ -22,7 +22,6 @@ var ExchangeAggregator = function () {
 
     _classCallCheck(this, ExchangeAggregator);
 
-    console.log("What are exchanges: ", exchanges);
     this.subscriptions = {};
     this.exchanges = [];
     this.highestBid;
@@ -61,6 +60,9 @@ var ExchangeAggregator = function () {
       });
       emitter.on('ORDER_UPDATE', function (event) {
         _this2.updateOrderBook(event);
+      });
+      emitter.on('WS_ERROR', function (event) {
+        boundCallback(JSON.stringify(event));
       });
       setInterval(function () {
         var orderBookEvent = {
@@ -121,6 +123,7 @@ var ExchangeAggregator = function () {
 
       var orderBookEvent = {
         type: 'ORDER_BOOK_INIT',
+        exchange: event.exchange,
         highestBid: this.highestBid,
         lowestAsk: this.lowestAsk,
         orderBook: this.mergedOrderBook
@@ -128,9 +131,6 @@ var ExchangeAggregator = function () {
 
       callback(JSON.stringify(orderBookEvent));
     }
-
-    // Will use this same logic in React. Provide both backend & frontend orderbook
-
   }, {
     key: 'updateOrderBook',
     value: function updateOrderBook(event) {

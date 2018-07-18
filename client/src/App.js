@@ -47,10 +47,17 @@ class App extends Component {
               })
             }
           </Col>
-          <Col md={8}>
+          <Col md={8} className="main-panel">
             {
               (this.state.selectedMarket) && (
                 <OrderBook market={this.state.selectedMarket} />
+              )
+            }
+            {
+              (!this.state.selectedMarket) && (
+                <div className="welcome">
+                  <h1>Select a trading pair to get started!</h1>
+                </div>
               )
             }
           </Col>

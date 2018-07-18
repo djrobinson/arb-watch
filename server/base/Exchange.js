@@ -19,6 +19,8 @@ class Exchange {
       order['exchange'] = this.exchangeName;
       if (order.type === 'ORDER_BOOK_INIT') {
         emitter.emit(order.type, order);
+      } else if (order.type === 'WS_ERROR') {
+        emitter.emit(order.type, order);
       } else {
         emitter.emit('ORDER_UPDATE', order);
       }

@@ -10,7 +10,6 @@ const availableExchanges = require('../exchanges');
 class ExchangeAggregator {
 
   constructor(exchanges) {
-    console.log("What are exchanges: ", exchanges);
     this.subscriptions = {};
     this.exchanges = [];
     this.highestBid;
@@ -41,6 +40,9 @@ class ExchangeAggregator {
     emitter.on('ORDER_UPDATE', (event) => {
       this.updateOrderBook(event);
     });
+    emitter.on('WS_ERROR', (event) => {
+      boundCallback(JSON.stringify(event))
+    })
     setInterval(() => {
       const orderBookEvent = {
         type: 'ORDER_BOOK_INIT',
@@ -94,6 +96,7 @@ class ExchangeAggregator {
 
     const orderBookEvent = {
       type: 'ORDER_BOOK_INIT',
+      exchange: event.exchange,
       highestBid: this.highestBid,
       lowestAsk: this.lowestAsk,
       orderBook: this.mergedOrderBook
@@ -102,7 +105,6 @@ class ExchangeAggregator {
     callback(JSON.stringify(orderBookEvent));
   }
 
-  // Will use this same logic in React. Provide both backend & frontend orderbook
   updateOrderBook(event) {
 
     let book = {};
@@ -160,7 +162,5 @@ class ExchangeAggregator {
     }
   }
 }
-
-
 
 module.exports = ExchangeAggregator;

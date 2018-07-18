@@ -6,7 +6,7 @@ const signalR = require ('signalr-client');
 const jsonic = require('jsonic');
 const zlib = require('zlib');
 const events = require('events');
-const { Exchange } = require('./Exchange');
+const { Exchange } = require('../base/Exchange');
 
 class Bittrex extends Exchange {
   constructor() {
@@ -70,6 +70,10 @@ class Bittrex extends Exchange {
 
     self.client.serviceHandlers.onerror = (err) => {
       console.log("Bittrex WS Error", err);
+      this.emitOrderBook({
+        type: 'WS_ERROR',
+        exchange: 'bittrex'
+      });
     }
 
     self.client.serviceHandlers.onclose = () => {
@@ -166,6 +170,7 @@ class Bittrex extends Exchange {
       }, {})
       let initOrderBook = {
         type,
+        exchange: this.exchangeName,
         bids: bids,
         asks: asks
       }
