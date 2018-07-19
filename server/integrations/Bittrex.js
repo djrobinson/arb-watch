@@ -13,7 +13,6 @@ class Bittrex extends Exchange {
     this.exchangeName = 'bittrex';
     this.marketsUrl = 'https://bittrex.com/api/v1.1/public/getmarkets';
     this.client;
-    console.log('Instantiating Bittrex exchange!');
   }
 
   async getMarket() {
@@ -80,8 +79,11 @@ class Bittrex extends Exchange {
     }
 
     self.client.serviceHandlers.messageReceived = function (message) {
+
       let data = jsonic (message.utf8Data);
       let json;
+
+
 
       if (data.hasOwnProperty ('R')) {
         let b64 = data.R;
@@ -90,7 +92,7 @@ class Bittrex extends Exchange {
         zlib.inflateRaw (raw, function (err, inflated) {
           if (! err) {
             let json = JSON.parse (inflated.toString ('utf8'));
-            boundParser('ORDER_BOOK_INIT', json);
+            boundParser('ORDER_BOOK_INIT', json, market);
             // Start only after order book inits
             boundInitExchangeDelta(market);
           }
@@ -100,7 +102,6 @@ class Bittrex extends Exchange {
   }
 
   initExchangeDelta(market) {
-    console.log("Bittrex init order book");
 
     const self = this;
     const boundParser = this.parseOrderDelta.bind(this);
@@ -131,7 +132,7 @@ class Bittrex extends Exchange {
               zlib.inflateRaw (raw, function (err, inflated) {
                 if (! err) {
                   json = JSON.parse(inflated.toString ('utf8'));
-                  boundParser('ORDER_DELTA', json);
+                  boundParser('ORDER_DELTA', json, market);
                 }
               });
             }
@@ -141,7 +142,7 @@ class Bittrex extends Exchange {
     }
   }
 
-  parseOrderDelta(type, orderDelta) {
+  parseOrderDelta(type, orderDelta, market) {
     if (type === 'ORDER_BOOK_INIT' && orderDelta['Z'] && orderDelta['S']) {
       const sortedBids = orderDelta['Z'].sort((a, b) => {
         return b.R - a.R;
@@ -152,23 +153,26 @@ class Bittrex extends Exchange {
       const bids = sortedBids.reduce((aggregator, bid) => {
           let order = {
             exchange: this.exchangeName,
+            market: market,
             rate: bid.R,
             amount: parseFloat(bid.Q)
           };
-          aggregator[this.exchangeName + bid.R.toString()] = order;
+          aggregator[this.exchangeName + market + bid.R.toString()] = order;
           return aggregator;
       }, {})
       const asks = sortedAsks.reduce((aggregator, ask) => {
           let order = {
             exchange: this.exchangeName,
+            market: market,
             rate: ask.R,
             amount: parseFloat(ask.Q)
           };
-          aggregator[this.exchangeName + ask.R.toString()] = order;
+          aggregator[this.exchangeName + market + ask.R.toString()] = order;
           return aggregator;
       }, {})
       let initOrderBook = {
         type,
+        market: market,
         exchange: this.exchangeName,
         bids: bids,
         asks: asks
@@ -179,7 +183,8 @@ class Bittrex extends Exchange {
       orderDelta['Z'].forEach(change => {
         let orderDelta = {
           type: 'BID_UPDATE',
-          rateString: this.exchangeName + change.R.toString(),
+          market: market,
+          rateString: this.exchangeName + market + change.R.toString(),
           rate: change.R,
           amount: parseFloat(change.Q)
         }
@@ -188,7 +193,8 @@ class Bittrex extends Exchange {
       orderDelta['S'].forEach(change => {
         let orderDelta = {
           type: 'ASK_UPDATE',
-          rateString: this.exchangeName + change.R.toString(),
+          market: market,
+          rateString: this.exchangeName + market + change.R.toString(),
           rate: change.R,
           amount: parseFloat(change.Q)
         }

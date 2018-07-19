@@ -16,9 +16,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'client/build')));
 
+
 io.on('connection', client => {
+  console.log("Connection", client.id);
   const exchanges = ['bittrex', 'poloniex'];
-  const exchangeAggregator = new ExchangeAggregator(exchanges);
+  exchangeAggregator = new ExchangeAggregator(exchanges);
+
+
   const aggregatorCallback = msg => {
     client.emit('orderbook', msg);
   };

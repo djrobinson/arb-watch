@@ -61,7 +61,7 @@ class Poloniex extends Exchange {
 
     socket.onmessage = msg => {
       if (msg && msg.data) {
-        this.parseOrderDelta(msg.data);
+        this.parseOrderDelta(msg.data, market);
       }
     }
 
@@ -70,24 +70,25 @@ class Poloniex extends Exchange {
     };
   }
 
-  parseOrderDelta(orderDelta) {
+  parseOrderDelta(orderDelta, market) {
     const data = JSON.parse(orderDelta);
-
     if (data && data[2] && data[2][0] && data[2][0][1] && data[2][0][1].hasOwnProperty('orderBook')) {
       // Initial Response:
       let initOrderBook = {
         type: 'ORDER_BOOK_INIT',
-        exchange: this.exchangeName
+        exchange: this.exchangeName,
+        market: market
       }
       const stringBids = data[2][0][1].orderBook[1];
       const bidRates = Object.keys(stringBids).slice(0, this.orderBookDepth);
       const bids = bidRates.reduce((aggregator, bid) => {
         let order = {
           exchange: this.exchangeName,
+          market: market,
           rate: parseFloat(bid),
           amount: parseFloat(stringBids[bid])
         };
-        aggregator[this.exchangeName + bid] = order;
+        aggregator[this.exchangeName + market + bid] = order;
         return aggregator;
       }, {});
 
@@ -96,10 +97,11 @@ class Poloniex extends Exchange {
       const asks = askRates.reduce((aggregator, ask) => {
         let order = {
           exchange: this.exchangeName,
+          market: market,
           rate: parseFloat(ask),
           amount: parseFloat(stringAsks[ask])
         };
-        aggregator[this.exchangeName + ask] = order;
+        aggregator[this.exchangeName + market + ask] = order;
         return aggregator;
       }, {});
 
@@ -114,7 +116,8 @@ class Poloniex extends Exchange {
             // 1 for Bid
             let bidChange = {
               type: 'BID_UPDATE',
-              rateString: this.exchangeName + delta[2],
+              market: market,
+              rateString: this.exchangeName + market + delta[2],
               rate: parseFloat(delta[2]),
               amount: parseFloat(delta[3])
             }
@@ -123,7 +126,8 @@ class Poloniex extends Exchange {
             // 0 for ask
             let askChange = {
               type: 'ASK_UPDATE',
-              rateString: this.exchangeName + delta[2],
+              market: market,
+              rateString: this.exchangeName + market + delta[2],
               rate: parseFloat(delta[2]),
               amount: parseFloat(delta[3])
             }
