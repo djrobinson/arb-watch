@@ -12,29 +12,34 @@ describe('Poloniex integrations test', () => {
   const expectedMarkets = [{ market: 'BTC-ETH' }, { market: 'BTC-OMG' }];
   const expectedBidUpdate = {
     type: 'BID_UPDATE',
-    rateString: 'poloniex0.0002',
+    rateString: 'poloniexBTC-ETH0.0002',
+    market: 'BTC-ETH',
     rate: 0.0002,
     amount: 1000
   };
   const expectedAskUpdate = {
     type: 'ASK_UPDATE',
-    rateString: 'poloniex0.0003',
+    rateString: 'poloniexBTC-ETH0.0003',
+    market: 'BTC-ETH',
     rate: 0.0003,
     amount: 1000
   };
   const expectedInitMarket = {
     type: 'ORDER_BOOK_INIT',
     exchange: 'poloniex',
+    market: 'BTC-ETH',
     bids: {
-      'poloniex0.0002': {
+      'poloniexBTC-ETH0.0002': {
         rate: 0.0002,
+        market: 'BTC-ETH',
         amount: 2000,
         exchange: 'poloniex'
       }
     },
     asks: {
-      'poloniex0.0003': {
+      'poloniexBTC-ETH0.0003': {
         rate: 0.0003,
+        market: 'BTC-ETH',
         amount: 1000,
         exchange: 'poloniex'
       }
@@ -47,7 +52,7 @@ describe('Poloniex integrations test', () => {
       console.log("Calling mocked emit orderbook");
       parsed = res;
     };
-    exchange.parseOrderDelta(initBook);
+    exchange.parseOrderDelta(initBook, 'BTC-ETH');
     assert.deepEqual(parsed, expectedInitMarket);
   });
 
@@ -56,7 +61,7 @@ describe('Poloniex integrations test', () => {
     exchange.emitOrderBook = (res) => {
       parsed = res;
     };
-    exchange.parseOrderDelta(bidDelta);
+    exchange.parseOrderDelta(bidDelta, 'BTC-ETH');
     assert.deepEqual(parsed, expectedBidUpdate);
   });
 
@@ -65,7 +70,7 @@ describe('Poloniex integrations test', () => {
     exchange.emitOrderBook = (res) => {
       parsed = res;
     };
-    exchange.parseOrderDelta(askDelta);
+    exchange.parseOrderDelta(askDelta, 'BTC-ETH');
     assert.deepEqual(parsed, expectedAskUpdate);
   });
 

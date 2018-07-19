@@ -14,39 +14,46 @@ describe('Bittrex integration tests', () => {
 
   const expectedBidUpdate = {
     type: 'BID_UPDATE',
-    rateString: 'bittrex0.0002',
+    market: 'BTC-ETH',
+    rateString: 'bittrexBTC-ETH0.0002',
     rate: 0.0002,
     amount: 1000
   };
   const expectedAskUpdate = {
     type: 'ASK_UPDATE',
-    rateString: 'bittrex0.0003',
+    market: 'BTC-ETH',
+    rateString: 'bittrexBTC-ETH0.0003',
     rate: 0.0003,
     amount: 1000
   };
   const expectedInitMarket = {
     type: 'ORDER_BOOK_INIT',
     exchange: 'bittrex',
+    market: 'BTC-ETH',
     bids: {
-      'bittrex0.0002': {
+      'bittrexBTC-ETH0.0002': {
         rate: 0.0002,
+        market: 'BTC-ETH',
         amount: 1000,
         exchange: 'bittrex'
       },
-      'bittrex0.00015': {
+      'bittrexBTC-ETH0.00015': {
         rate: 0.00015,
+        market: 'BTC-ETH',
         amount: 1500,
         exchange: 'bittrex'
       }
     },
     asks: {
-      'bittrex0.0003': {
+      'bittrexBTC-ETH0.0003': {
         rate: 0.0003,
+        market: 'BTC-ETH',
         amount: 1000,
         exchange: 'bittrex'
       },
-      'bittrex0.00035': {
+      'bittrexBTC-ETH0.00035': {
         rate: 0.00035,
+        market: 'BTC-ETH',
         amount: 1200,
         exchange: 'bittrex'
       }
@@ -60,7 +67,8 @@ describe('Bittrex integration tests', () => {
       console.log("Calling mocked emit orderbook");
       parsed = res;
     };
-    exchange.parseOrderDelta('ORDER_BOOK_INIT', initOrderbook);
+    console.log("What is parsed: ", parsed);
+    exchange.parseOrderDelta('ORDER_BOOK_INIT', initOrderbook, 'BTC-ETH');
     assert.deepEqual(parsed, expectedInitMarket);
   });
 
@@ -69,7 +77,7 @@ describe('Bittrex integration tests', () => {
     exchange.emitOrderBook = (res) => {
       parsedMarkets = res;
     };
-    exchange.parseOrderDelta('ORDER_DELTA', orderDeltaBid);
+    exchange.parseOrderDelta('ORDER_DELTA', orderDeltaBid, 'BTC-ETH');
     assert.deepEqual(parsedMarkets, expectedBidUpdate);
   });
 
@@ -78,7 +86,7 @@ describe('Bittrex integration tests', () => {
     exchange.emitOrderBook = (res) => {
       parsedMarkets = res;
     };
-    exchange.parseOrderDelta('ORDER_DELTA', orderDeltaAsk);
+    exchange.parseOrderDelta('ORDER_DELTA', orderDeltaAsk, 'BTC-ETH');
     assert.deepEqual(parsedMarkets, expectedAskUpdate);
   });
 
