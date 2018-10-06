@@ -26,7 +26,7 @@ npm test
 
 ### Adding a New Integration:
 
-To add a new integration, you need to extend the `Exchange` class found in `arb-watch/server/base/Exchange` and implement a few common methods that all descendants of Exchange require. When that is complete you can add the exchange to the `/arb-watch/server/exchanges.js` file and update the  to begin to see websocket events aggregated into a single orderbook w/ other active exchange events. Here is the basic layout of what a new exchange integration should look like:
+To add a new integration, you need to extend the `Exchange` class found in `arb-watch/server/base/Exchange` and implement a few common methods that all descendants of Exchange require. When that is complet, add the exchange to the `/arb-watch/server/exchanges.js` file to begin to see websocket events aggregated into a single orderbook w/ other active exchange events. Here is the basic layout of what a new exchange integration should look like:
 
 ```
 const { Exchange } = require('../base/Exchange');
@@ -76,7 +76,7 @@ class NewIntegration extends Exchange {
 }
 ```
 
-**Event Types for Exchange.emitOrderBook**: Below is the required structure of events to be processed by the ExchangeAggregator and sent to the front end via socket.io. Check out the unit tests to see examples of how they are processed:
+**Event Types for Exchange.emitOrderBook**: Below are example events to be processed by the ExchangeAggregator and sent to the front end via socket.io. Any new exchange must match this event structure when passing params to `emitOrderBook` to be processed by the aggregator. Check out the unit tests to see examples of how they are processed:
 
 ```
   // Initial Orderbook state (might need to get this from REST on a few exchanges)
@@ -85,6 +85,7 @@ class NewIntegration extends Exchange {
     bids: {
       'bittrex0.0002': {
         rate: 0.0002,
+        market: 'BTC-ETH',
         amount: 1000,
         exchange: 'bittrex'
       },
@@ -98,11 +99,13 @@ class NewIntegration extends Exchange {
     asks: {
       'bittrex0.0003': {
         rate: 0.0003,
+        market: 'BTC-ETH',
         amount: 1000,
         exchange: 'bittrex'
       },
       'bittrex0.00035': {
         rate: 0.00035,
+        market: 'BTC-ETH',
         amount: 1200,
         exchange: 'bittrex'
       },
@@ -113,6 +116,7 @@ class NewIntegration extends Exchange {
       type: 'BID_UPDATE',
       rateString: '<exchangename>0.0002',
       rate: 0.0002,
+      market: 'BTC-ETH',
       amount: 1000
     }
   
@@ -121,6 +125,7 @@ class NewIntegration extends Exchange {
       type: 'ASK_UPDATE',
       rateString: '<exchangename>0.0003',
       rate: 0.0003,
+      market: 'BTC-ETH',
       amount: 1000
     }
 ```
