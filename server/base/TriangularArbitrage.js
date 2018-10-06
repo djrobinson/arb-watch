@@ -5,12 +5,30 @@ const { emitter } = require('./Exchange')
 const ccxt = require ('ccxt')
 const log = require ('ololog').configure ({ locate: false })
 
-let masterBook = {
-  bids: {},
-  asks: {}
-};
+let masterBook = {}
+let exchange = new ccxt.bittrex ({
+    'apiKey': '',
+    'secret': '',
+    'verbose': false, // set to true to see more debugging output
+    'timeout': 60000,
+    'enableRateLimit': true, // add this
+})
+
 
 const markets = ['ETH-LTC', 'BTC-LTC', 'ETH-REP', 'BTC-REP', 'ETH-ZEC', 'BTC-ZEC', 'ETH-DASH', 'BTC-DASH']
+
+let AltToEth = {}
+let AltToBtc = {}
+let BtcToEth = {}
+
+const initialBook = (event) => {
+  exchange = masterBook[event.market] = {}
+  masterBook[event.market].bids = event.bids
+  masterBook[event.market].asks = event.asks
+  masterBook[event.market].highestBid = 10000000000000
+  masterBook[event.market].lowestAsk = 0
+  calculateArbitrage(event.market)
+}
 
 const startHerUp = () => {
   log.bright.green ('Staring \'er up!')
@@ -22,48 +40,33 @@ const startHerUp = () => {
       starter.initOrderBook(market)
     })
   }, 2000)
-  emitter.on('ORDER_BOOK_INIT', calculateArbitrage)
+  emitter.on('ORDER_BOOK_INIT', initialBook)
+  emitter.on('ORDER_UPDATE', updateOrderBook)
 }
 
 
-const exchange = new ccxt.bittrex ({
-    'apiKey': process.env.BITTREX_API_KEY,
-    'secret': process.env.BITTREX_SECRET,
-    'verbose': false, // set to true to see more debugging output
-    'timeout': 60000,
-    'enableRateLimit': true, // add this
-})
 
 function timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 const marketStuff = async (firstAmount, firstRate, secondRate, firstType, secondType, pair1, pair2, COIN, coinToBtcRate) => {
 
-  log.bright.blue("Calc Price: ", firstRate);
-
-  // try to load markets first, retry on request timeouts until it succeeds:
+  log.bright.blue("Calc Price: ", firstRate)
 
   let balance
   let firstTradeValue
   let secondTradeValue
-  while (true) {
-    try {
-      await exchange.loadMarkets ();
-      break;
-    } catch (e) {
-        if (e instanceof ccxt.RequestTimeout)
-            console.log (exchange.iso8601 (Date.now ()), e.constructor.name, e.message)
-    }
-  }
 
   try {
+      log.bright.green("Trying trade: ", balance)
       // fetch account balance from the exchange
       balance = await exchange.fetchBalance()
+      log.bright.red("Trying trade: ", balance)
       const freeBalance = balance.free[COIN]
       console.log("What is freebalance: ", freeBalance)
       if (!freeBalance) {
-        console.log("No Balance for ", COIN);
+        console.log("No Balance for ", COIN)
         return
       }
       firstTradeValue = firstAmount < freeBalance ? firstAmount : freeBalance
@@ -150,50 +153,44 @@ const marketStuff = async (firstAmount, firstRate, secondRate, firstType, second
   }
 }
 
-let AltToEth = {}
-let AltToBtc = {}
-let BtcToEth = {}
-
-const calculateArbitrage = (event) => {
+const calculateArbitrage = (market) => {
   let ALT
-  if (event.market === 'BTC-ETH') {
-    ALT = '';
+  if (market === 'BTC-ETH') {
+    ALT = ''
   } else {
-    if (event.market.indexOf('BTC-') > -1) {
-      ALT = event.market.replace('BTC-', '')
+    if (market.indexOf('BTC-') > -1) {
+      ALT = market.replace('BTC-', '')
     }
-    if (event.market.indexOf('ETH-') > -1) {
-      ALT = event.market.replace('ETH-', '')
+    if (market.indexOf('ETH-') > -1) {
+      ALT = market.replace('ETH-', '')
     }
   }
-  console.log("What is alt: ", ALT);
+  console.log("What is alt: ", ALT)
 
-  const bidsArray = Object.keys(event.bids)
-  const asksArray = Object.keys(event.asks)
+  const bidsArray = Object.keys(masterBook[market].bids)
+  const asksArray = Object.keys(masterBook[market].asks)
 
-  console.log("Event pair: ", event.market)
-
-  if (event.market === `BTC-${ALT}`) {
+  if (market === `BTC-${ALT}`) {
     AltToBtc[ALT] = {
       bid: {},
       ask: {}
     }
-    AltToBtc[ALT].bid = event.bids[bidsArray[0]],
-    AltToBtc[ALT].ask = event.asks[asksArray[0]]
+    AltToBtc[ALT].bid = masterBook[market].bids[bidsArray[0]],
+    AltToBtc[ALT].ask = masterBook[market].asks[asksArray[0]]
   }
 
-  if (event.market === 'BTC-ETH') {
-    BtcToEth.bid = event.bids[bidsArray[0]],
-    BtcToEth.ask = event.asks[asksArray[0]]
+  if (market === 'BTC-ETH') {
+    BtcToEth.bid = masterBook[market].bids[bidsArray[0]],
+    BtcToEth.ask = masterBook[market].asks[asksArray[0]]
   }
 
-  if (event.market === `ETH-${ALT}`) {
+  if (market === `ETH-${ALT}`) {
     AltToEth[ALT] = {
       bid: {},
       ask: {}
     }
-    AltToEth[ALT].bid = event.bids[bidsArray[0]],
-    AltToEth[ALT].ask = event.asks[asksArray[0]]
+    AltToEth[ALT].bid = masterBook[market].bids[bidsArray[0]],
+    AltToEth[ALT].ask = masterBook[market].asks[asksArray[0]]
   }
   if (BtcToEth.hasOwnProperty('bid') && AltToBtc[ALT] && AltToEth[ALT] && AltToBtc[ALT].hasOwnProperty('bid') && AltToEth[ALT].hasOwnProperty('bid')) {
 
@@ -246,57 +243,70 @@ const calculateArbitrage = (event) => {
 const updateOrderBook = (event) => {
   const market = event.market
 
-  let book = {};
-  let type = '';
-  if (event.type === 'BID_UPDATE') {
-    type = 'bids';
-    book = masterBook[market].bids;
-  }
-  if (event.type === 'ASK_UPDATE') {
-    type = 'asks';
-    book = masterBook[market].asks;
-  }
-  if (book) {
-    if (!event.amount) {
+  let book = {}
+  let type = ''
+  if (masterBook.hasOwnProperty(market)) {
+    console.log ("Order book update")
+    if (event.type === 'BID_UPDATE') {
+      type = 'bids'
+      book = masterBook[market].bids
+    }
+    if (event.type === 'ASK_UPDATE') {
+      type = 'asks'
+      book = masterBook[market].asks
+    }
+    if (book) {
+      if (!event.amount) {
 
-      if (book[event.rateString]) {
-        delete book[event.rateString];
-      }
-      masterBook[market][type] = book;
-    } else if (book[event.rateString]) {
-      let order = {
-        exchange: event.exchange,
-        rate: event.rate,
-        amount: event.amount
-      };
-      book[event.rateString] = order;
-      masterBook[market][type] = book;
-    } else {
-      let order = {
-        exchange: event.exchange,
-        rate: event.rate,
-        amount: event.amount
-      };
-      book[event.rateString] = order;
-      const sortedBook = Object.keys(book).sort((a, b) => {
+        if (book[event.rateString]) {
+          delete book[event.rateString]
+        }
+        masterBook[market][type] = book
+      } else if (book[event.rateString]) {
+        let order = {
+          exchange: event.exchange,
+          rate: event.rate,
+          amount: event.amount
+        }
+        book[event.rateString] = order
+        masterBook[market][type] = book
+      } else {
+        let order = {
+          exchange: event.exchange,
+          rate: event.rate,
+          amount: event.amount
+        }
+        book[event.rateString] = order
+        const sortedBook = Object.keys(book).sort((a, b) => {
+          if (type === 'bids') {
+            return book[b].rate - book[a].rate
+          }
+          if (type === 'asks') {
+            return book[a].rate - book[b].rate
+          }
+        })
+
         if (type === 'bids') {
-          return book[b].rate - book[a].rate;
+          log.bright.red("New bid rate: ", market, book[sortedBook[0]].rate)
+          if (book[sortedBook[0]].rate > masterBook[market].highestBid) {
+            masterBook[market].highestBid = book[sortedBook[0]].rate
+            calculateArbitrage(market)
+          }
         }
         if (type === 'asks') {
-          return book[a].rate - book[b].rate;
+          if (book[sortedBook[0]].rate < masterBook[market].lowestAsk) {
+            log.bright.red("New ask rate: ", market, book[sortedBook[0]].rate)
+            masterBook[market].lowestAsk = book[sortedBook[0]].rate
+            calculateArbitrage(market)
+          }
         }
-      });
-      if (type === 'bids') {
-        this.highestBid = book[sortedBook[0]].rate;
+        const newBook = {}
+        sortedBook.forEach(b => {
+          newBook[b] = book[b]
+        })
+        masterBook[market][type] = newBook
       }
-      if (type === 'asks') {
-        this.lowestAsk = book[sortedBook[0]].rate;
-      }
-      const newBook = {};
-      sortedBook.forEach(b => {
-        newBook[b] = book[b];
-      })
-      masterBook[market][type] = newBook;
+
     }
   }
 }
