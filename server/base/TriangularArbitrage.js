@@ -2,11 +2,8 @@
 
 const Bittrex = require('../integrations/Bittrex')
 const { emitter } = require('./Exchange')
-
-const main = new Bittrex()
-
-main.initOrderBook('BTC-ETH')
-
+const ccxt = require ('ccxt')
+const log = require ('ololog').configure ({ locate: false })
 
 let masterBook = {
   bids: {},
@@ -15,21 +12,19 @@ let masterBook = {
 
 const markets = ['ETH-LTC', 'BTC-LTC', 'ETH-REP', 'BTC-REP', 'ETH-ZEC', 'BTC-ZEC', 'ETH-DASH', 'BTC-DASH']
 
-// Pause 2 seconds until btc-eth connects
-setTimeout(() => {
-  markets.forEach(market => {
-    const starter = new Bittrex()
-    starter.initOrderBook(market)
-  })
-}, 2000)
+const startHerUp = () => {
+  log.bright.green ('Staring \'er up!')
+  const main = new Bittrex()
+  main.initOrderBook('BTC-ETH')
+  setTimeout(() => {
+    markets.forEach(market => {
+      const starter = new Bittrex()
+      starter.initOrderBook(market)
+    })
+  }, 2000)
+  emitter.on('ORDER_BOOK_INIT', calculateArbitrage)
+}
 
-
-// ----------------------------------------------------------------------------
-
-const ccxt = require ('ccxt')
-const log = require ('ololog').configure ({ locate: false })
-
-// ----------------------------------------------------------------------------
 
 const exchange = new ccxt.bittrex ({
     'apiKey': process.env.BITTREX_API_KEY,
@@ -38,15 +33,6 @@ const exchange = new ccxt.bittrex ({
     'timeout': 60000,
     'enableRateLimit': true, // add this
 })
-
-// const getCurrencies = async (exchange) => {
-//   const currencies = await exchange.fetchCurrencies()
-//   console.log("Here is currency: ", currencies['REP']);
-//   return currencies
-// }
-
-// const currencies = getCurrencies(exchange)
-
 
 function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -257,9 +243,6 @@ const calculateArbitrage = (event) => {
 
 }
 
-emitter.on('ORDER_BOOK_INIT', calculateArbitrage)
-// emitter.on('ORDER_UPDATE', updateOrderBook)
-
 const updateOrderBook = (event) => {
   const market = event.market
 
@@ -318,3 +301,4 @@ const updateOrderBook = (event) => {
   }
 }
 
+module.exports = {startHerUp}

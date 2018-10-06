@@ -9,7 +9,7 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 
 const ExchangeAggregator = require('./server-build/base/ExchangeAggregator');
-const TriangularArbitrage = require('./server-build/base/TriangularArbitrage');
+const {startHerUp} = require('./server-build/base/TriangularArbitrage');
 const indexRouter = require('./server-build/api/index');
 
 
@@ -18,6 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'client/build')));
+
 
 
 io.on('connection', client => {
@@ -76,5 +77,8 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500);
   res.send({ error: 'error'});
 });
+
+startHerUp()
+
 
 module.exports = {app: app, server: server};

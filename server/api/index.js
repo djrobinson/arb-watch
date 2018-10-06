@@ -3,7 +3,6 @@ const router = express.Router();
 const exchanges = require('../exchanges');
 const ExchangeAggregator = require('../base/ExchangeAggregator');
 const asyncMiddleware = require('../utils/asyncResolve');
-const
 
 router.get('/getMarkets', asyncMiddleware(async (req, res, next) => {
   const exchangeStrings = Object.keys(exchanges);
@@ -27,11 +26,6 @@ router.get('/getMarkets', asyncMiddleware(async (req, res, next) => {
 
     res.json(sharedMarkets);
   })
-}));
-
-router.get('/triangle', asyncMiddleware(async (req, res, next) => {
-
-
 }));
 
 module.exports = router;
