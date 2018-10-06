@@ -1,3 +1,4 @@
+require('dotenv').config()
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
@@ -8,7 +9,9 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 
 const ExchangeAggregator = require('./server-build/base/ExchangeAggregator');
+const TriangularArbitrage = require('./server-build/base/TriangularArbitrage');
 const indexRouter = require('./server-build/api/index');
+
 
 app.use(logger('dev'));
 app.use(express.json());
