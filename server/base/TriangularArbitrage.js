@@ -53,7 +53,6 @@ const updateOrderBook = (event) => {
   if (masterBook.hasOwnProperty(market)) {
     if (event.type === 'BID_UPDATE') {
       type = 'bids'
-      console.log("Bid update: ", type)
       book = masterBook[market].bids
     }
     if (event.type === 'ASK_UPDATE') {
@@ -61,7 +60,6 @@ const updateOrderBook = (event) => {
       book = masterBook[market].asks
     }
     if (book) {
-      console.log("update book: ", event)
       if (!event.amount) {
 
         if (book[event.rateString]) {
@@ -117,7 +115,6 @@ const updateOrderBook = (event) => {
 }
 
 const calculateArbitrage = (market) => {
-  console.log("Calculating arbitrage: ", market)
   let ALT
   if (market === 'BTC-ETH') {
     ALT = ''
@@ -129,7 +126,6 @@ const calculateArbitrage = (market) => {
       ALT = market.replace('ETH-', '')
     }
   }
-  console.log("What is alt: ", ALT)
 
   const bidsArray = Object.keys(masterBook[market].bids)
   const asksArray = Object.keys(masterBook[market].asks)
@@ -197,11 +193,7 @@ const calculateArbitrage = (market) => {
       // Synthetic ETH-ALT
       marketStuff(BtcToEth.bid.amount, BtcToEth.bid.rate, AltToBtc[ALT].ask.rate, 'sell', 'buy', 'ETH/BTC', ALT + '/BTC', 'ETH', AltToBtc[ALT].ask.rate)
     }
-
-    console.log("Synthetic ALT-BTC: ", synthAltToBtc, "Real: ", AltToBtc[ALT].bid.rate, "Arbitrage: ", altToBtcProfit)
-    console.log("Synthetic ALT-ETH: ", synthAltToEth, "Real: ", AltToEth[ALT].bid.rate, "Arbitrage: ", altToEthProfit)
   }
-
 }
 
 const marketStuff = async (firstAmount, firstRate, secondRate, firstType, secondType, pair1, pair2, COIN, coinToBtcRate) => {
@@ -215,25 +207,21 @@ const marketStuff = async (firstAmount, firstRate, secondRate, firstType, second
   try {
       // fetch account balance from the exchange
       balance = await exchange.fetchBalance()
-      log.bright.red("Trying trade: ", balance)
       const freeBalance = balance.free[COIN]
-      console.log("What is freebalance: ", freeBalance)
       if (!freeBalance) {
         console.log("No Balance for ", COIN)
         return
       }
       firstTradeValue = firstAmount < freeBalance ? firstAmount : freeBalance
-      if (firstTradeValue * coinToBtcRate < .001) {
-        console.log("Trade value is not large enough: ", pair1, firstType, firstTradeValue)
-        return
-      }
+      // if (firstTradeValue * coinToBtcRate < .001) {
+      //   console.log("Trade value is not large enough: ", pair1, firstType, firstTradeValue)
+      //   return
+      // }
       if (firstType === 'sell') {
         secondTradeValue = firstTradeValue * firstRate
       } else {
         secondTradeValue = firstTradeValue / firstRate
       }
-
-      console.log("WHAAAT IS TRADE VALS: ", firstTradeValue, secondTradeValue)
   } catch (e) {
       if (e instanceof ccxt.DDoSProtection || e.message.includes ('ECONNRESET')) {
           log.bright.yellow ('[DDoS Protection] ' + e.message)
@@ -267,6 +255,7 @@ const marketStuff = async (firstAmount, firstRate, secondRate, firstType, second
     log.bright.magenta (response)
     log.bright.magenta ('Succeeded')
   } catch (e) {
+    // log.bright.magenta("First Order failure: ", symbol, side, price, amount, price)
     log.bright.magenta (symbol, side, exchange.iso8601 (Date.now ()), e.constructor.name, e.message)
     log.bright.magenta ('Failed')
   }
