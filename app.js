@@ -9,7 +9,7 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 
 const ExchangeAggregator = require('./server-build/base/ExchangeAggregator');
-const {startHerUp} = require('./server-build/base/TriangularArbitrage');
+const {initialize} = require('./server-build/base/TradeEngine');
 const indexRouter = require('./server-build/api/index');
 
 
@@ -78,7 +78,7 @@ app.use((err, req, res, next) => {
   res.send({ error: 'error'});
 });
 
-startHerUp()
+initialize()
 
 
 module.exports = {app: app, server: server};
