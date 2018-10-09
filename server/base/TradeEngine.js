@@ -15,7 +15,7 @@ let exchange = new ccxt.bittrex ({
     'enableRateLimit': true, // add this
 })
 
-const markets = ['ETH-LTC', 'BTC-LTC', 'ETH-REP', 'BTC-REP', 'ETH-ZEC', 'BTC-ZEC']
+const markets = ['ETH-LTC', 'BTC-LTC']
 
 let AltToEth = {}
 let AltToBtc = {}
@@ -43,42 +43,69 @@ const initialize = () => {
 }
 
 const runStrategy = async (event) => {
+    // TODO: NEED TO DO THIS BASED OFF "-". SOME ACRONYMS ARE 4 CHAR
     const base = event.market.slice(0, 3)
     const alt = event.market.slice(-3)
     if (event.type === 'ORDER_BOOK_INIT') {
-      console.log("ORDER init ", event)
+      console.log("ORDER INIT ", event)
     }
     if (event.type === 'BID_UPDATE') {
 
       log.bgLightMagenta.bright.cyan(base, " BASE ORDER UPDATE #", updateIterator)
       const bidRate = masterBook[event.market].highestBid
+      const fee = currentBalances[base].free * .0025
+      const altAmount = (currentBalances[base].free - fee) / bidRate
 
-      if (currentBalances[base].free && bidRate) {
-        log.bright.darkGray(event)
-        if (!pendingBuy) {
-          const fee = currentBalances[base].free * .0025
-          const altAmount = (currentBalances[base].free - fee) / bidRate
-          pendingBuy = true
+      if (currentBalances[base].free > .00005) {
+        if (openBuys.length && bidRate) {
+          console.log("We've got an update!!")
+          // Clone and erase openBuys
+          const buyOrders = openBuys.slice(0)
+          openBuys = [];
+          for (const buyOrder of buyOrders) {
+            const cancelResponse = await cancelOrder(buyOrder.id)
+            log.bright.red( "Cancel results: ", cancelResponse )
+          }
           const orderResults = await createOrder(alt + '/' + base, 'limit', 'buy', altAmount, bidRate)
           log.bright.green( "Order results: ", orderResults )
+        } else if (bidRate) {
+          log.bright.darkGray(event)
+          if (!pendingBuy) {
+            pendingBuy = true
+            const orderResults = await createOrder(alt + '/' + base, 'limit', 'buy', altAmount, bidRate)
+            log.bright.green( "Order results: ", orderResults )
+            pendingBuy = false
+          }
+
+
         }
       }
+
       updateIterator++
     }
     if (event.type === 'ASK_UPDATE') {
+      const sellAmount = currentBalances[alt].free * (1 - .0025)
 
       log.bgLightCyan.bright.magenta(alt, " ORDER UPDATE #", updateIterator)
       const askRate = masterBook[event.market].lowestAsk
 
-      if (currentBalances[alt].free && askRate) {
-        log.bright.darkGray(event)
-        if (!pendingSell) {
-          const sellAmount = currentBalances[alt].free * (1 - .0025)
-          pendingSell = true
+      if (currentBalances[alt].free * askRate > .00005) {
+        if (openSells.length && currentBalances[alt].free && askRate) {
+          console.log("We've got an update!!")
+          // Clone and erase openBuys
+          const sellOrders = openSells.slice(0)
+          openSells = [];
+          for (const sellOrder of sellOrders) {
+            const cancelResponse = await cancelOrder(sellOrder.id)
+            log.bright.red( "Cancel results: ", cancelResponse )
+          }
+          const orderResults = await createOrder(alt + '/' + base, 'limit', 'sell', sellAmount, askRate)
+          log.bright.green( "Order results: ", orderResults )
+        } else if (currentBalances[alt].free && askRate) {
+          log.bright.darkGray(event)
           const orderResults = await createOrder(alt + '/' + base, 'limit', 'sell', sellAmount, askRate)
           log.bright.green( "Order results: ", orderResults )
         }
-
       }
       updateIterator++
     }
@@ -114,17 +141,28 @@ const createOrder = async (symbol, orderType, side, amount, price) => {
     log.bright.yellow("First Order: ", symbol, side, price, amount)
     const response = await exchange.createOrder (symbol, orderType, side, amount, price)
     log.bright.magenta (response)
+    if (response.side === 'buy') {
+      openBuys.push(response)
+    }
+    if (response.side === 'sell') {
+      openSells.push(response)
+    }
     log.bright.magenta ('Succeeded')
     return response
   } catch (e) {
-    // log.bright.magenta("First Order failure: ", symbol, side, price, amount, price)
     log.bright.magenta (symbol, side, exchange.iso8601 (Date.now ()), e.constructor.name, e.message)
     log.bright.magenta ('Failed')
   }
 }
 
-const cancelOrder = async (uuid) => {
-  // TODO
+const cancelOrder = async (id) => {
+  try {
+    const response = await exchange.cancelOrder(id)
+    log.bright.magenta (response)
+  } catch (e) {
+    log.bright.magenta (symbol, side, exchange.iso8601 (Date.now ()), e.constructor.name, e.message)
+    log.bright.magenta ('Failed')
+  }
 }
 
 const initialBook = (event) => {
