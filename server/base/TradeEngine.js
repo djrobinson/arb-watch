@@ -26,10 +26,17 @@ let pendingSell = false
 let openBuys = []
 let openSells = []
 let updateIterator = 0
+let marketInfo = {}
 
-const initialize = () => {
+const initialize = async () => {
   log.bright.green ('Staring \'er up!')
   getBalances()
+  const marketArray = await exchange.fetchMarkets()
+  marketInfo = marketArray.reduce((acc, market) => {
+    acc[market.id] = market
+    return acc
+  }, {})
+  log.blue("MARKETS: ", marketInfo['BTC-ETH'])
   const main = new Bittrex()
   main.initOrderBook('BTC-ETH')
   setTimeout(() => {
@@ -47,7 +54,7 @@ const runStrategy = async (event) => {
     const base = event.market.slice(0, 3)
     const alt = event.market.slice(-3)
     if (event.type === 'ORDER_BOOK_INIT') {
-      console.log("ORDER INIT ", event)
+
     }
     if (event.type === 'BID_UPDATE') {
 
@@ -55,8 +62,10 @@ const runStrategy = async (event) => {
       const bidRate = masterBook[event.market].highestBid
       const fee = currentBalances[base].free * .0025
       const altAmount = (currentBalances[base].free - fee) / bidRate
+      if (base === 'ETH') {
 
-      if (currentBalances[base].free > .00005) {
+      }
+      if (altAmount > marketInfo[event.market].limits.amount.min) {
         if (openBuys.length && bidRate) {
           console.log("We've got an update!!")
           // Clone and erase openBuys
@@ -89,7 +98,7 @@ const runStrategy = async (event) => {
       log.bgLightCyan.bright.magenta(alt, " ORDER UPDATE #", updateIterator)
       const askRate = masterBook[event.market].lowestAsk
 
-      if (currentBalances[alt].free * askRate > .00005) {
+      if (currentBalances[alt].free > marketInfo[event.market].limits.amount.min) {
         if (openSells.length && currentBalances[alt].free && askRate) {
           console.log("We've got an update!!")
           // Clone and erase openBuys
@@ -160,8 +169,7 @@ const cancelOrder = async (id) => {
     const response = await exchange.cancelOrder(id)
     log.bright.magenta (response)
   } catch (e) {
-    log.bright.magenta (symbol, side, exchange.iso8601 (Date.now ()), e.constructor.name, e.message)
-    log.bright.magenta ('Failed')
+    log.bright.magenta ('Cancel Failed')
   }
 }
 
