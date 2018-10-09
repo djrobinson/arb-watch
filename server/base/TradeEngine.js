@@ -57,7 +57,7 @@ const runStrategy = async (event) => {
         log.bright.darkGray(event)
         if (!pendingBuy) {
           const fee = currentBalances[base].free * .0025
-          const altAmount = currentBalances[base].free / bidRate - fee
+          const altAmount = (currentBalances[base].free - fee) / bidRate
           pendingBuy = true
           const orderResults = await createOrder(alt + '/' + base, 'limit', 'buy', altAmount, bidRate)
           log.bright.green( "Order results: ", orderResults )
@@ -113,7 +113,6 @@ const createOrder = async (symbol, orderType, side, amount, price) => {
   try {
     log.bright.yellow("First Order: ", symbol, side, price, amount)
     const response = await exchange.createOrder (symbol, orderType, side, amount, price)
-    firstOrderId = response.id
     log.bright.magenta (response)
     log.bright.magenta ('Succeeded')
     return response
@@ -186,7 +185,9 @@ const updateOrderBook = (event) => {
         if (type === 'bids') {
           if (book[sortedBook[0]].rate != masterBook[market].highestBid) {
             // Reset ask
-            masterBook[market].highestBid = book[sortedBook[0]].rate
+            if (book[sortedBook[0]].rate > masterBook[market].highestBid) {
+              masterBook[market].highestBid = book[sortedBook[0]].rate
+            }
             recalculate = true
           }
         }
@@ -194,7 +195,9 @@ const updateOrderBook = (event) => {
         if (type === 'asks') {
           if (book[sortedBook[0]].rate != masterBook[market].lowestAsk) {
             // Reset bid
-            masterBook[market].lowestAsk = book[sortedBook[0]].rate
+            if (book[sortedBook[0]].rate < masterBook[market].lowestAsk) {
+              masterBook[market].lowestAsk = book[sortedBook[0]].rate
+            }
             recalculate = true
           }
         }
