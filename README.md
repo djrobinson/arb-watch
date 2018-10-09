@@ -1,2 +1,2 @@
-# Cryptocurrency Trading Algorithm Engine 
+# Cryptocurrency Algo Trading 
 
