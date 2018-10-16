@@ -29,14 +29,12 @@ let updateIterator = 0
 let marketInfo = {}
 
 const initialize = async () => {
-  log.bright.green ('Staring \'er up!')
   getBalances()
   const marketArray = await exchange.fetchMarkets()
   marketInfo = marketArray.reduce((acc, market) => {
     acc[market.id] = market
     return acc
   }, {})
-  log.blue("MARKETS: ", marketInfo['BTC-ETH'])
   const main = new Bittrex()
   main.initOrderBook('BTC-ETH')
   setTimeout(() => {
@@ -49,11 +47,48 @@ const initialize = async () => {
   emitter.on('ORDER_UPDATE', updateOrderBook)
 }
 
+const calculateAmount = (base, alt, side, rate) => {
+  if (side === 'buy') {
+    const fee = currentBalances[base].free * .0025
+    const altAmount = (currentBalances[base].free - fee) / rate
+    return altAmount
+  }
+  if (side === 'sell') {
+    const fee = currentBalances[alt].free * .0025
+    const baseAmount = (currentBalances[alt].free - fee) / rate
+    return baseAmount
+  }
+}
+
+const orderWorkflow = (pair, side, rate) => {
+  const base = event.market.slice(0, event.market.indexOf('-'))
+  const alt = event.market.slice(-1 * (event.market.length - event.market.indexOf))
+  console.log("What is BASE: ", base)
+  console.log("What is ALT: ", alt)
+  const amount = calculateAmount(base, alt, side, rate)
+    if (openOrders.length && bidRate) {
+    console.log("We've got an update!!")
+    // Clone and erase openOrders
+    const orders = openOrders.slice(0)
+    openOrders = [];
+    for (const order of orders) {
+      const cancelResponse = await cancelOrder(order.id)
+      log.bright.red( "Cancel results: ", cancelResponse )
+    }
+  }
+  log.bright.darkGray(event)
+  if (!pendingBuy) {
+    pendingBuy = true
+    const orderResults = await createOrder(alt + '/' + base, 'limit', 'buy', altAmount, bidRate)
+    log.bright.green( "Order results: ", orderResults )
+    pendingBuy = false
+  }
+}
+
+
+// TODO: REFORM EVENTS TO "INDICATOR_EVENT" INSTEAD OF MARKETBOOK EVENTS
 const runStrategy = async (event) => {
 
-    // TODO: NEED TO DO THIS BASED OFF "-". SOME ACRONYMS ARE 4 CHAR
-    const base = event.market.slice(0, 3)
-    const alt = event.market.slice(-3)
     if (event.type === 'ORDER_BOOK_INIT') {
 
     }
@@ -61,29 +96,8 @@ const runStrategy = async (event) => {
 
       log.bgLightMagenta.bright.cyan(base, " BASE ORDER UPDATE #", updateIterator)
       const bidRate = masterBook[event.market].highestBid
-      const fee = currentBalances[base].free * .0025
-      const altAmount = (currentBalances[base].free - fee) / bidRate
-      if (base === 'ETH') {
-
-      }
       if (altAmount > marketInfo[event.market].limits.amount.min) {
-        if (openBuys.length && bidRate) {
-          console.log("We've got an update!!")
-          // Clone and erase openBuys
-          const buyOrders = openBuys.slice(0)
-          openBuys = [];
-          for (const buyOrder of buyOrders) {
-            const cancelResponse = await cancelOrder(buyOrder.id)
-            log.bright.red( "Cancel results: ", cancelResponse )
-          }
-        }
-        log.bright.darkGray(event)
-        if (!pendingBuy) {
-          pendingBuy = true
-          const orderResults = await createOrder(alt + '/' + base, 'limit', 'buy', altAmount, bidRate)
-          log.bright.green( "Order results: ", orderResults )
-          pendingBuy = false
-        }
+
       }
       updateIterator++
     }
@@ -93,41 +107,8 @@ const runStrategy = async (event) => {
       log.bgLightCyan.bright.magenta(alt, " ORDER UPDATE #", updateIterator)
       const askRate = masterBook[event.market].lowestAsk
 
-      if (currentBalances[alt].free > marketInfo[event.market].limits.amount.min) {
-        if (openSells.length && currentBalances[alt].free && askRate) {
-          console.log("We've got an update!!")
-          // Clone and erase openBuys
-          const sellOrders = openSells.slice(0)
-          openSells = [];
-          for (const sellOrder of sellOrders) {
-            const cancelResponse = await cancelOrder(sellOrder.id)
-            log.bright.red( "Cancel results: ", cancelResponse )
-          }
-        }
-        log.bright.darkGray(event)
-        const orderResults = await createOrder(alt + '/' + base, 'limit', 'sell', sellAmount, askRate)
-        log.bright.green( "Order results: ", orderResults )
-      }
       updateIterator++
     }
-}
-
-const singleOrder = async (symbol, type, amount, rate) => {
-  if (currentBalances[alt].free > marketInfo[event.market].limits.amount.min) {
-    if (openOrders.length && currentBalances[alt].free && askRate) {
-      console.log("We've got an update!!")
-      // Clone and erase
-      const orders = openOrders.slice(0)
-      openOrders = [];
-      for (const order of orders) {
-        const cancelResponse = await cancelOrder(order.id)
-        log.bright.red( "Cancel results: ", cancelResponse )
-      }
-    }
-    log.bright.darkGray(event)
-    const orderResults = await createOrder(symbol, 'limit', type, amount, rate)
-    log.bright.green( "Order results: ", orderResults )
-  }
 }
 
 const getBalances = async () => {
@@ -161,7 +142,7 @@ const createOrder = async (symbol, orderType, side, amount, price) => {
     const response = await exchange.createOrder (symbol, orderType, side, amount, price)
     log.bright.magenta (response)
     if (response.side === 'buy') {
-      openBuys.push(response)
+      openOrders.push(response)
     }
     if (response.side === 'sell') {
       openSells.push(response)
