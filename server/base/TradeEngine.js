@@ -31,6 +31,7 @@ const initialize = async () => {
     acc[market.id] = market
     return acc
   }, {})
+  console.log("What is market info: ", marketInfo[testMarket])
   const main = new Bittrex()
   main.initOrderBook('BTC-ETH')
   setTimeout(() => {
@@ -51,37 +52,47 @@ const calculateAmount = (base, alt, side, rate) => {
   if (side === 'buy') {
     const fee = currentBalances[base].free * .0025
     const altAmount = (currentBalances[base].free - fee) / rate
-    return altAmount
+    const minimum = marketInfo[base + '-' + alt].limits.amount.min
+    console.log("We getting the right minmum??", minimum < altAmount)
+    if (minimum < altAmount) {
+      return altAmount
+    }
+    return null
   }
   if (side === 'sell') {
     const fee = currentBalances[alt].free * .0025
     const baseAmount = (currentBalances[alt].free - fee) / rate
-    return baseAmount
+    const minimum = marketInfo[base + '-' + alt].limits.amounts.min * rate
+    if (minimum > baseAmount) {
+      return baseAmount
+    }
+    return null
   }
 }
 
 const orderWorkflow = async (pair, side, rate) => {
   const base = pair.slice(0, pair.indexOf('-'))
   const alt = pair.slice(pair.length - pair.indexOf('-'), pair.length)
-  console.log("What is BASE: ", base)
-  console.log("What is ALT: ", alt)
   const amount = calculateAmount(base, alt, side, rate)
-  if (openOrders.length && bidRate) {
-    console.log("We've got an update!!")
-    // Clone and erase openOrders
-    const orders = openOrders.slice(0)
-    openOrders = [];
-    for (const order of orders) {
-      const cancelResponse = await cancelOrder(order.id)
-      log.bright.red( "Cancel results: ", cancelResponse )
-    }
+  console.log("What is amount: ", amount)
+  if (amount) {
+    if (openOrders.length && bidRate) {
+      console.log("We've got an update!!")
+      // Clone and erase openOrders
+      const orders = openOrders.slice(0)
+      openOrders = [];
+      for (const order of orders) {
+        const cancelResponse = await cancelOrder(order.id)
+        log.bright.red( "Cancel results: ", cancelResponse )
+      }
 
-  }
-  if (!pendingOrder) {
-    pendingOrder = true
-    const orderResults = await createOrder(alt + '/' + base, 'limit', side, amount, rate)
-    pendingOrder = false
-    return orderResults
+    }
+    if (!pendingOrder) {
+      pendingOrder = true
+      const orderResults = await createOrder(alt + '/' + base, 'limit', side, amount, rate)
+      pendingOrder = false
+      return orderResults
+    }
   }
 }
 
