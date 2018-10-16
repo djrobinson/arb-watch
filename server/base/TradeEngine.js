@@ -16,16 +16,12 @@ let exchange = new ccxt.bittrex ({
 })
 
 const markets = ['ETH-LTC']
+const testMarket = 'ETH-LTC'
 
-let AltToEth = {}
-let AltToBtc = {}
-let BtcToEth = {}
 let currentBalances = {}
-let pendingBuy = false
-let pendingSell = false
-let openBuys = []
-let openSells = []
-let updateIterator = 0
+let pendingOrder = false
+let openOrders = []
+let iterator = 0
 let marketInfo = {}
 
 const initialize = async () => {
@@ -43,6 +39,10 @@ const initialize = async () => {
       starter.initOrderBook(market)
     })
   }, 2000)
+  // Pull in indicator object
+  // Should have initialize and update methods
+  //
+
   emitter.on('ORDER_BOOK_INIT', initialBook)
   emitter.on('ORDER_UPDATE', updateOrderBook)
 }
@@ -60,13 +60,13 @@ const calculateAmount = (base, alt, side, rate) => {
   }
 }
 
-const orderWorkflow = (pair, side, rate) => {
-  const base = event.market.slice(0, event.market.indexOf('-'))
-  const alt = event.market.slice(-1 * (event.market.length - event.market.indexOf))
+const orderWorkflow = async (pair, side, rate) => {
+  const base = pair.slice(0, pair.indexOf('-'))
+  const alt = pair.slice(pair.length - pair.indexOf('-'), pair.length)
   console.log("What is BASE: ", base)
   console.log("What is ALT: ", alt)
   const amount = calculateAmount(base, alt, side, rate)
-    if (openOrders.length && bidRate) {
+  if (openOrders.length && bidRate) {
     console.log("We've got an update!!")
     // Clone and erase openOrders
     const orders = openOrders.slice(0)
@@ -75,40 +75,31 @@ const orderWorkflow = (pair, side, rate) => {
       const cancelResponse = await cancelOrder(order.id)
       log.bright.red( "Cancel results: ", cancelResponse )
     }
+
   }
-  log.bright.darkGray(event)
-  if (!pendingBuy) {
-    pendingBuy = true
-    const orderResults = await createOrder(alt + '/' + base, 'limit', 'buy', altAmount, bidRate)
-    log.bright.green( "Order results: ", orderResults )
-    pendingBuy = false
+  if (!pendingOrder) {
+    pendingOrder = true
+    const orderResults = await createOrder(alt + '/' + base, 'limit', side, amount, rate)
+    pendingOrder = false
+    return orderResults
   }
 }
 
 
 // TODO: REFORM EVENTS TO "INDICATOR_EVENT" INSTEAD OF MARKETBOOK EVENTS
-const runStrategy = async (event) => {
+const runStrategy = async () => {
+  if (iterator % 10 === 0 && iterator !== 0) {
+    const bidKeys = Object.keys(masterBook[testMarket].bids)
+    console.log("Running strategy", bidKeys[4])
+    const pair = testMarket
+    const side = 'buy'
+    const rate = masterBook[testMarket].bids[bidKeys[4]].rate
+    const result = await orderWorkflow(pair, side, rate)
+    log.bright.green( "Order result: ", result )
+  }
+  iterator++;
 
-    if (event.type === 'ORDER_BOOK_INIT') {
 
-    }
-    if (event.type === 'BID_UPDATE') {
-
-      log.bgLightMagenta.bright.cyan(base, " BASE ORDER UPDATE #", updateIterator)
-      const bidRate = masterBook[event.market].highestBid
-      if (altAmount > marketInfo[event.market].limits.amount.min) {
-
-      }
-      updateIterator++
-    }
-    if (event.type === 'ASK_UPDATE') {
-      const sellAmount = currentBalances[alt].free * (1 - .0025)
-
-      log.bgLightCyan.bright.magenta(alt, " ORDER UPDATE #", updateIterator)
-      const askRate = masterBook[event.market].lowestAsk
-
-      updateIterator++
-    }
 }
 
 const getBalances = async () => {
@@ -163,6 +154,14 @@ const cancelOrder = async (id) => {
     log.bright.magenta ('Cancel Failed')
   }
 }
+
+/*
+  Strategies will all have an initial state and updates. The example below is
+  the price action strategy. Might store each strategy in objects with
+
+    initialize(event)
+*/
+
 
 const initialBook = (event) => {
   masterBook[event.market] = {}
