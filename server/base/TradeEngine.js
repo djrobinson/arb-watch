@@ -15,8 +15,8 @@ let exchange = new ccxt.bittrex ({
     'enableRateLimit': true, // add this
 })
 
-const markets = ['ETH-LTC']
-const testMarket = 'ETH-LTC'
+const markets = ['ETH-LTC', 'ETH-REP', 'BTC-ETH', 'BTC-LTC', 'BTC-ZEC']
+
 
 let currentBalances = {}
 let pendingOrder = false
@@ -31,7 +31,6 @@ const initialize = async () => {
     acc[market.id] = market
     return acc
   }, {})
-  console.log("What is market info: ", marketInfo[testMarket])
   const main = new Bittrex()
   main.initOrderBook('BTC-ETH')
   setTimeout(() => {
@@ -40,9 +39,6 @@ const initialize = async () => {
       starter.initOrderBook(market)
     })
   }, 2000)
-  // Pull in indicator object
-  // Should have initialize and update methods
-  //
 
   emitter.on('ORDER_BOOK_INIT', initialBook)
   emitter.on('ORDER_UPDATE', updateOrderBook)
@@ -76,7 +72,7 @@ const orderWorkflow = async (pair, side, rate) => {
   const amount = calculateAmount(base, alt, side, rate)
   console.log("What is amount: ", amount)
   if (amount) {
-    if (openOrders.length && bidRate) {
+    if (openOrders.length) {
       console.log("We've got an update!!")
       // Clone and erase openOrders
       const orders = openOrders.slice(0)
@@ -98,19 +94,18 @@ const orderWorkflow = async (pair, side, rate) => {
 
 
 // TODO: REFORM EVENTS TO "INDICATOR_EVENT" INSTEAD OF MARKETBOOK EVENTS
-const runStrategy = async () => {
+const runStrategy = async (event) => {
   if (iterator % 10 === 0 && iterator !== 0) {
-    const bidKeys = Object.keys(masterBook[testMarket].bids)
-    console.log("Running strategy", bidKeys[4])
-    const pair = testMarket
+    const bidKeys = Object.keys(masterBook[event.market].bids)
+    console.log("Running strategy", event.market, ' ', masterBook[event.market].bids[bidKeys[4]].rate )
+    const pair = event.market
     const side = 'buy'
-    const rate = masterBook[testMarket].bids[bidKeys[4]].rate
+    // Choose random bid here
+    const rate = masterBook[pair].bids[bidKeys[4]].rate
     const result = await orderWorkflow(pair, side, rate)
     log.bright.green( "Order result: ", result )
   }
   iterator++;
-
-
 }
 
 const getBalances = async () => {
@@ -166,21 +161,12 @@ const cancelOrder = async (id) => {
   }
 }
 
-/*
-  Strategies will all have an initial state and updates. The example below is
-  the price action strategy. Might store each strategy in objects with
-
-    initialize(event)
-*/
-
-
 const initialBook = (event) => {
   masterBook[event.market] = {}
   masterBook[event.market].bids = event.bids
   masterBook[event.market].asks = event.asks
   masterBook[event.market].highestBid = event.bids[Object.keys(event.bids)[0]].rate
   masterBook[event.market].lowestAsk = event.asks[Object.keys(event.asks)[0]].rate
-  runStrategy(event)
 }
 
 const updateOrderBook = (event) => {
